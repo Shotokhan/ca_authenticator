@@ -1,0 +1,12 @@
+ * Serving Flask app 'app' (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+ * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+ * Running on https://172.28.0.2:5001/ (Press CTRL+C to quit)
+192.168.1.80 - - [13/Nov/2021 12:08:43] "GET / HTTP/1.1" 200 -
+192.168.1.80 - - [13/Nov/2021 12:08:43] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+172.28.0.1 - - [13/Nov/2021 12:09:09] "GET / HTTP/1.1" 200 -
+172.28.0.1 - - [13/Nov/2021 12:09:48] "GET / HTTP/1.1" 200 -

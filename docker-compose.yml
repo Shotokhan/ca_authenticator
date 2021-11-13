@@ -1,0 +1,15 @@
+services:
+  ca_authenticator:
+    stdin_open: true
+    tty: true
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+      network: host
+    image: ca_authenticator
+    volumes:
+      - ./volume/:/usr/src/app/volume/
+    ports:
+      - "5001:5001"
+      - "5002:5002"
+
