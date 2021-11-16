@@ -45,7 +45,7 @@ def readKey(infile, passphrase):
         exit(1)
 
 
-def readCAConfig(infile):
+def readConfigFromJSON(infile):
     # infile is expected to be .json
     with open(infile, 'r') as f:
         j = json.load(f)
@@ -118,6 +118,7 @@ def readCertificate(infile):
 
 
 def verifyCertificate(ca_cert, cert_to_check):
+    # only works for RSA
     issuer_public_key = ca_cert.public_key()
     try:
         issuer_public_key.verify(cert_to_check.signature, cert_to_check.tbs_certificate_bytes, padding.PKCS1v15(), cert_to_check.signature_hash_algorithm)
@@ -129,20 +130,24 @@ def verifyCertificate(ca_cert, cert_to_check):
 if __name__ == "__main__":
     k1 = genKeyPair('./test/ca_key.pem', 'prova')
     k2 = readKey('./test/ca_key.pem', 'prova')
-    # print(k1.private_numbers().d)
-    # print(k2.private_numbers().d)
-    ca_data = readCAConfig("./volume/ca_data.json")
+    print("RSA private key's d")
+    print(k2.private_numbers().d, end='\n\n')
+    ca_data = readConfigFromJSON("./volume/ca_data.json")
     c1 = createSelfSignedCert("./test/ca_cert.pem", ca_data, k2)
     c2 = readCertificate("./test/ca_cert.pem")
-    # print(c1.serial_number)
-    # print(c2.serial_number)
-    # print(c1.subject)
-    server_data = readCAConfig("./volume/server_data.json")
+    print("Self signed certificate's serial number")
+    print(c2.serial_number, end='\n\n')
+    print("Self signed certificate's subject")
+    print(c2.subject, end='\n\n')
+    server_data = readConfigFromJSON("./volume/server_data.json")
     new_k = genKeyPair('./test/server_key.pem', 'prova')
     csr, _ = createCSR(server_data, new_k)
+    print("CSR's extension")
+    print(csr.extensions[0].value, end='\n\n')
     new_cert, _ = signCertificateRequest(csr, c2, k2, 7, save_to_file=True, outfile='./test/server_cert.pem')
     new_c2 = readCertificate('./test/server_cert.pem')
     verify = verifyCertificate(c2, new_c2)
-    print(f"{verify = }")
+    print("Verify of the certificate signed by the CA")
+    print(f"{verify = }", end='\n\n')
 
 
