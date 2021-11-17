@@ -30,7 +30,8 @@ def authenticate():
     else:
         pk = cert.public_key()
         challenge = project_utils.get_nonce(pk.key_size, pk.public_numbers().n, nonces)
-        session['challenge'] = str(challenge)
+        challenge = project_utils.to_b64(challenge.to_bytes(pk.key_size, byteorder='big'))
+        session['challenge'] = challenge
         session['certificate'] = project_utils.to_b64(serializeCert(cert))
         return project_utils.json_response({"challenge": challenge}, 200)
 
@@ -39,14 +40,13 @@ def authenticate():
 @project_utils.catch_error
 def validate_challenge():
     global nonces
+    cert = loadCertificate(project_utils.from_b64(session['certificate']))
+    pk = cert.public_key()
     response = request.get_json(force=True)
     response = response['response']
-    response = response.to_bytes(response.bit_length(), 'little')
-    cert = session['certificate']
-    pk = cert.public_key()
-    challenge = int(session['challenge'])
-    validate = verifySignature(pk, response, challenge.to_bytes(challenge.bit_length(), 'little'),
-                               cert.signature_hash_algorithm)
+    response = project_utils.from_b64(response)
+    challenge = project_utils.from_b64(session['challenge'])
+    validate = verifySignature(pk, response, challenge, cert.signature_hash_algorithm)
     if not validate:
         return project_utils.json_response({"msg": "Challenge validation failed"}, 400)
     else:
@@ -56,7 +56,7 @@ def validate_challenge():
             if len(nonces) >= nonce_list_lim:
                 nonces = set()
                 app.config['SECRET_KEY'] = uuid.uuid4().hex
-            nonces.add(challenge)
+            nonces.add(int.from_bytes(challenge, byteorder='big'))
             _keys = [_key for _key in session.keys()]
             [session.pop(key) for key in _keys]
             subject_data = cert.extensions[0].value.value

@@ -6,7 +6,22 @@
  * Running on all addresses.
    WARNING: This is a development server. Do not use it in a production deployment.
  * Running on https://172.28.0.2:5001/ (Press CTRL+C to quit)
-192.168.1.80 - - [13/Nov/2021 12:08:43] "GET / HTTP/1.1" 200 -
-192.168.1.80 - - [13/Nov/2021 12:08:43] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-172.28.0.1 - - [13/Nov/2021 12:09:09] "GET / HTTP/1.1" 200 -
-172.28.0.1 - - [13/Nov/2021 12:09:48] "GET / HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:13:58] "GET / HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:14:10] "POST /authenticate HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:14:10] "POST /validate_challenge HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:14:10] "GET /status HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:14:49] "POST /authenticate HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:14:49] "POST /validate_challenge HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:14:49] "GET /status HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:15:45] "POST /authenticate HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:15:45] "POST /validate_challenge HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:15:45] "GET /status HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:18:02] "POST /authenticate HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:18:02] "POST /validate_challenge HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:18:02] "GET /status HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:20:10] "POST /authenticate HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:20:10] "POST /validate_challenge HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:20:10] "GET /status HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:20:39] "POST /authenticate HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:20:39] "POST /validate_challenge HTTP/1.1" 200 -
+172.28.0.1 - - [17/Nov/2021 17:20:39] "GET /status HTTP/1.1" 200 -

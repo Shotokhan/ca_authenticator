@@ -11,8 +11,11 @@ def from_b64(msg):
 
 
 def to_b64(msg):
-    encoded = base64.b64encode(msg.encode())
-    return encoded
+    try:
+        encoded = base64.b64encode(msg.encode())
+    except AttributeError:
+        encoded = base64.b64encode(msg)
+    return encoded.decode()
 
 
 def json_response(msg_dict, status_code):
@@ -36,6 +39,10 @@ def catch_error(func):
             return func(*args, **kwargs)
         except Exception as e:
             print("Exception in {}: {} {}".format(func.__name__, e.__class__.__name__, str(e)))
-            return json_response({"msg": "Generic error"}, 500)
+            debug = True
+            if debug:
+                return json_response({"msg": f"Generic error {func.__name__} {e.__class__.__name__} {str(e)}"}, 500)
+            else:
+                return json_response({"msg": "Generic error"}, 500)
 
     return exceptionLogger
