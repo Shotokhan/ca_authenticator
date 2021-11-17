@@ -52,6 +52,10 @@ def readConfigFromJSON(infile):
     return j
 
 
+def serializeCert(cert):
+    return cert.public_bytes(serialization.Encoding.PEM)
+
+
 def createCSR(subject_data, key, save_to_file=False, outfile=None):
     # outfile is expected to be .pem
     subject = x509.Name([x509.NameAttribute(NameOID.COUNTRY_NAME, subject_data['COUNTRY_NAME']),
@@ -64,7 +68,7 @@ def createCSR(subject_data, key, save_to_file=False, outfile=None):
     ext = json.dumps(subject_data['EXTENSION']).encode()
     csr = csr.add_extension(x509.UnrecognizedExtension(x509.ObjectIdentifier("1.2.840.113549.1.9.2"), ext), critical=False)
     csr = csr.sign(key, hashes.SHA256())
-    csr_serial = csr.public_bytes(serialization.Encoding.PEM)
+    csr_serial = serializeCert(csr)
     if save_to_file:
         with open(outfile, 'wb') as f:
             f.write(csr_serial)
@@ -81,7 +85,7 @@ def signCertificateRequest(csr_cert, ca_cert, key, validity_days, save_to_file=F
     cert = cert.not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=validity_days))
     cert = cert.add_extension(csr.extensions[0].value, csr.extensions[0].critical)
     cert = cert.sign(key, hashes.SHA256())
-    cert_serial = cert.public_bytes(serialization.Encoding.PEM)
+    cert_serial = serializeCert(cert)
     if save_to_file:
         with open(outfile, 'wb') as f:
             f.write(cert_serial)
@@ -106,19 +110,25 @@ def createSelfSignedCert(outfile, ca_data, key):
     cert = cert.not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=ca_data['VALIDITY_DAYS']))
     cert = cert.sign(key, hashes.SHA256())
     with open(outfile, 'wb') as f:
-        f.write(cert.public_bytes(serialization.Encoding.PEM))
+        f.write(serializeCert(cert))
     return cert
 
 
 def readCertificate(infile):
     with open(infile, 'rb') as f:
         pem_data = f.read()
+    cert = loadCertificate(pem_data)
+    return cert
+
+
+def loadCertificate(pem_data):
     cert = x509.load_pem_x509_certificate(pem_data)
     return cert
 
 
 def verifyCertificate(ca_cert, cert_to_check):
     # only works for RSA
+    # TODO: verify chain
     issuer_public_key = ca_cert.public_key()
     try:
         issuer_public_key.verify(cert_to_check.signature, cert_to_check.tbs_certificate_bytes, padding.PKCS1v15(), cert_to_check.signature_hash_algorithm)
