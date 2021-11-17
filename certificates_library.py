@@ -126,15 +126,21 @@ def loadCertificate(pem_data):
     return cert
 
 
+def verifySignature(pk, signature, data, hash_alg, padding_alg=None):
+    if padding_alg is None:
+        padding_alg = padding.PKCS1v15()
+    try:
+        pk.verify(signature, data, padding_alg, hash_alg)
+        return True
+    except InvalidSignature:
+        return False
+
+
 def verifyCertificate(ca_cert, cert_to_check):
     # only works for RSA
     # TODO: verify chain
     issuer_public_key = ca_cert.public_key()
-    try:
-        issuer_public_key.verify(cert_to_check.signature, cert_to_check.tbs_certificate_bytes, padding.PKCS1v15(), cert_to_check.signature_hash_algorithm)
-        return True
-    except InvalidSignature:
-        return False
+    return verifySignature(issuer_public_key, cert_to_check.signature, cert_to_check.tbs_certificate_bytes, cert_to_check.signature_hash_algorithm)
 
 
 if __name__ == "__main__":
