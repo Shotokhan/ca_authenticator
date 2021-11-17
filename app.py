@@ -41,19 +41,22 @@ def validate_challenge():
     global nonces
     response = request.get_json(force=True)
     response = response['response']
+    response = response.to_bytes(response.bit_length(), 'little')
     cert = session['certificate']
     pk = cert.public_key()
-    validate = verifySignature(pk, response, int(session['challenge']), cert.signature_hash_algorithm)
+    challenge = int(session['challenge'])
+    validate = verifySignature(pk, response, challenge.to_bytes(challenge.bit_length(), 'little'),
+                               cert.signature_hash_algorithm)
     if not validate:
         return project_utils.json_response({"msg": "Challenge validation failed"}, 400)
     else:
-        if int(session['challenge']) in nonces:
+        if challenge in nonces:
             return project_utils.json_response({"msg": "Nonce reuse"}, 400)
         else:
             if len(nonces) >= nonce_list_lim:
                 nonces = set()
                 app.config['SECRET_KEY'] = uuid.uuid4().hex
-            nonces.add(int(session['challenge']))
+            nonces.add(challenge)
             _keys = [_key for _key in session.keys()]
             [session.pop(key) for key in _keys]
             subject_data = cert.extensions[0].value.value

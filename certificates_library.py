@@ -136,6 +136,12 @@ def verifySignature(pk, signature, data, hash_alg, padding_alg=None):
         return False
 
 
+def makeSignature(key, data, hash_alg, padding_alg=None):
+    if padding_alg is None:
+        padding_alg = padding.PKCS1v15()
+    return key.sign(data, padding_alg, hash_alg)
+
+
 def verifyCertificate(ca_cert, cert_to_check):
     # only works for RSA
     # TODO: verify chain
