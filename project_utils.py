@@ -32,6 +32,13 @@ def get_nonce(key_size, modulus, nonces):
     return nonce
 
 
+def filter_validity_days(validity):
+    validity = int(validity)
+    validity = max(validity, 1)
+    validity = min(validity, 28)
+    return validity
+
+
 def catch_error(func):
     @wraps(func)
     def exceptionLogger(*args, **kwargs):

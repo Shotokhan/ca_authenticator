@@ -126,6 +126,13 @@ def loadCertificate(pem_data):
     return cert
 
 
+def loadCSR(pem_data):
+    # CSR is an authenticated request, so it doesn't require challenge/response after
+    csr = x509.load_pem_x509_csr(pem_data)
+    assert csr.is_signature_valid, "CSR signature is not valid"
+    return csr
+
+
 def verifySignature(pk, signature, data, hash_alg, padding_alg=None):
     if padding_alg is None:
         padding_alg = padding.PKCS1v15()
