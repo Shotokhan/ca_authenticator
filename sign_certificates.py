@@ -4,10 +4,10 @@ import sys
 import project_utils
 
 
-app = Flask(__name__, static_folder="/usr/src/app/volume/")
+app = Flask(__name__, static_folder="/usr/src/app/static/")
 server_pass, ca_pass = sys.argv[1], sys.argv[2]
 ca_cert = readCertificate('./volume/ca_cert.pem')
-ca_key = readKey('./ca_key.pem', ca_pass)
+ca_key = readKey('./volume/ca_key.pem', ca_pass)
 
 
 @app.route('/registration', methods=['POST'], strict_slashes=False)
@@ -36,5 +36,5 @@ def index():
 
 if __name__ == '__main__':
     # password = input("Password for CA certificate's private key\n>>")
-    context = getSSLContext('./volume/server_cert.pem', './server_key.pem', server_pass)
+    context = getSSLContext('./volume/server_cert.pem', './volume/server_key.pem', server_pass)
     app.run(host="0.0.0.0", port="5002", ssl_context=context)

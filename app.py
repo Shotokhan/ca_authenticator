@@ -7,7 +7,7 @@ import json
 from datetime import timedelta
 
 
-app = Flask(__name__, static_folder="/usr/src/app/volume/")
+app = Flask(__name__, static_folder="/usr/src/app/static/")
 app.config['SECRET_KEY'] = uuid.uuid4().hex
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 ca_cert = None
@@ -86,6 +86,6 @@ def index():
 if __name__ == '__main__':
     # password = input("Password for server certificate's private key\n>>")
     password = sys.argv[1]
-    context = getSSLContext('./volume/server_cert.pem', './server_key.pem', password)
+    context = getSSLContext('./volume/server_cert.pem', './volume/server_key.pem', password)
     ca_cert = readCertificate('./volume/ca_cert.pem')
     app.run(host="0.0.0.0", port="5001", ssl_context=context)
