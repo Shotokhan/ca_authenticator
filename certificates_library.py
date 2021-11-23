@@ -11,6 +11,7 @@ import ssl
 
 
 def getSSLContext(cert_file, key_file, password):
+    # TODO: self-verify cert_file
     try:
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         cipher = 'AES256-GCM-SHA384'
@@ -134,6 +135,7 @@ def loadCSR(pem_data):
 
 
 def verifySignature(pk, signature, data, hash_alg, padding_alg=None):
+    # only works for RSA
     if padding_alg is None:
         padding_alg = padding.PKCS1v15()
     try:
@@ -150,10 +152,28 @@ def makeSignature(key, data, hash_alg, padding_alg=None):
 
 
 def verifyCertificate(ca_cert, cert_to_check):
-    # only works for RSA
-    # TODO: verify chain
+    # TODO: verify chain, verify CRL (is CRL a parameter to this function?)
     issuer_public_key = ca_cert.public_key()
-    return verifySignature(issuer_public_key, cert_to_check.signature, cert_to_check.tbs_certificate_bytes, cert_to_check.signature_hash_algorithm)
+    check = verifySignature(issuer_public_key, cert_to_check.signature, cert_to_check.tbs_certificate_bytes, cert_to_check.signature_hash_algorithm)
+    check &= verifyTimeValidity(cert_to_check)
+    check &= verifyCertChain(ca_cert, cert_to_check)
+    check &= verifyRevocation(ca_cert, cert_to_check, crl=None)
+    return check
+
+
+def verifyCertChain(ca_cert, cert_to_check):
+    # stub
+    return True
+
+
+def verifyRevocation(ca_cert, cert_to_check, crl):
+    # stub
+    return True
+
+
+def verifyTimeValidity(cert_to_check):
+    expiration = cert_to_check.not_valid_after.timestamp()
+    return datetime.datetime.now().timestamp() < expiration
 
 
 if __name__ == "__main__":
