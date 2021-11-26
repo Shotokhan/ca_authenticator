@@ -84,7 +84,13 @@ def signCertificateRequest(csr_cert, ca_cert, key, validity_days, save_to_file=F
     cert = cert.serial_number(x509.random_serial_number())
     cert = cert.not_valid_before(datetime.datetime.utcnow())
     cert = cert.not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=validity_days))
-    cert = cert.add_extension(csr_cert.extensions[0].value, csr_cert.extensions[0].critical)
+    try:
+        cert = cert.add_extension(csr_cert.extensions[0].value, csr_cert.extensions[0].critical)
+    except IndexError:
+        ext = csr_cert.subject.rfc4514_string()
+        ext = ext.split('=')
+        ext = ext[ext.index('CN')+1].split('},')[0].encode()
+        cert = cert.add_extension(x509.UnrecognizedExtension(x509.ObjectIdentifier("1.2.840.113549.1.9.2"), ext), critical=False)
     cert = cert.sign(key, hashes.SHA256())
     cert_serial = serializeCert(cert)
     if save_to_file:

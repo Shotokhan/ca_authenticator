@@ -108,7 +108,8 @@ function subjectToAttrs(subject) {
             value: subject.ORGANIZATION_NAME
         }, {
             name: 'commonName',
-            value: subject.COMMON_NAME
+            // value: subject.COMMON_NAME
+            value: JSON.stringify(subject.EXTENSION)
         }
     ];
 
@@ -124,7 +125,10 @@ function createCSR(subject, pair) {
     var attrs = subjectToAttrs(subject);
     csr.publicKey = pair.publicKey;
     csr.setSubject(attrs);
-    csr.addAttribute({ name: 'extensionRequest', extensions: { name: 'unrecognizedExtension', value: JSON.stringify(subject.EXTENSION) } });
+    // unrecognizedExtension doesn't work in forge library; nsComment is okay but can't use more than 128 chars
+    // see: https://github.com/digitalbazaar/forge/blob/c0bb359afca73bb0f3ba6feb3f93bbcb9166af2e/lib/x509.js#L2091
+    // it still doesn't work after serialization; so we use common name for extension
+    // csr.setAttributes([{ name: 'extensionRequest', extensions: { name: 'nsComment', value: JSON.stringify(subject.EXTENSION) } }]);
     csr.sign(pair.privateKey);
     var csr_pem = pki.certificationRequestToPem(csr);
 
