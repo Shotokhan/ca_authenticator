@@ -10,4 +10,5 @@ function main() {
     challenge = atob(challenge);
     sig = makeSignature(pair.privateKey, challenge);
     verified = verifySignature(pair.publicKey, challenge, sig);
+    status_msg = status('https://localhost:5001');
 };
