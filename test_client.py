@@ -70,4 +70,4 @@ def test_correct_authentication(authentication_url, local=True, registration_url
 
 if __name__ == "__main__":
     test_correct_authentication("https://127.0.0.1:5001")
-    test_correct_authentication(authentication_url="https://127.0.0.1:5001", local=False, registration_url="https://127.0.0.1:5002")
+    test_correct_authentication(authentication_url="https://127.0.0.1:5001", local=False, registration_url="https://127.0.0.1:5001")
