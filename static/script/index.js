@@ -1,7 +1,11 @@
-function main(){
+function main() {
     console.log(forge);
-    enc = genKeyPair("prova");
-    k = readKey(enc, "prova");
+    pair = genKeyPair("prova");
+    k = readKey(pair.privateKeyEnc, "prova");
+    pair.privateKey = k;
+    subject = '{ "COUNTRY_NAME": "IT", "STATE_OR_PROVINCE_NAME": "Italia", "LOCALITY_NAME": "Napoli", "ORGANIZATION_NAME": "MMV SPA",  "COMMON_NAME": "localhost", "DNSName": "localhost", "VALIDITY_DAYS": 365,  "EXTENSION": { "id": "mike", "role": "student" }}';
+    subject = JSON.parse(subject);
+    csr = createCSR(subject, pair);
 }; 
 
 
@@ -10,10 +14,11 @@ function genKeyPair(passphrase) {
     pki = forge.pki;
     // 2048 bits key generation can require some time
     k = rsa.generateKeyPair({bits: 1024, e: 0x10001});
-    // ser = pki.privateKeyToPem(k.privateKey); // throws errors after decryption
-    ser = JSON.stringify(k);
+    ser = pki.privateKeyToPem(k.privateKey);
+    // ser = JSON.stringify(k); // misses prototype info
     enc = encrypt(ser, passphrase);
-    return enc;
+    pair = { publicKey: k.publicKey, privateKeyEnc: enc }
+    return pair;
 }
 
 
@@ -24,8 +29,8 @@ function readKey(encKey, passphrase) {
         throw new Error("Invalid password")
     } else {
         ser = result['plaintext'];
-        // k = pki.privateKeyFromPem(ser); // throws errors after decryption
-        k = JSON.parse(ser);
+        k = pki.privateKeyFromPem(ser);
+        // k = JSON.parse(ser);
         return k;
     }
 }
@@ -93,5 +98,46 @@ function decrypt(input, password) {
     decipher.update(input);
     var result = decipher.finish(); // check 'result' for true/false
 
-    return {plaintext: decipher.output, check: result}
+    return { plaintext: decipher.output, check: result };
+}
+
+
+function subjectToAttrs(subject) {
+
+    //var subject = JSON.parse(subject);
+    var attrs = [{
+            name: 'countryName',
+            value: subject.COUNTRY_NAME
+        }, {
+            name: 'stateOrProvinceName',
+            value: subject.STATE_OR_PROVINCE_NAME
+        }, {
+            name: 'localityName',
+            value: subject.LOCALITY_NAME
+        }, {
+            name: 'organizationName',
+            value: subject.ORGANIZATION_NAME
+        }, {
+            name: 'commonName',
+            value: subject.COMMON_NAME
+        }
+    ];
+
+    return attrs;
+
+}
+
+
+function createCSR(subject, pair) {
+    // subject is a dictionary
+    var pki = forge.pki;
+    var csr = forge.pki.createCertificationRequest();
+    var attrs = subjectToAttrs(subject);
+    csr.publicKey = pair.publicKey;
+    csr.setSubject(attrs);
+    csr.addAttribute({ name: 'extensionRequest', extensions: { name: 'unrecognizedExtension', value: JSON.stringify(subject.EXTENSION) } });
+    csr.sign(pair.privateKey);
+    var csr_pem = pki.certificationRequestToPem(csr);
+
+    return csr_pem;
 }
