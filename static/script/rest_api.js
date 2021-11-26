@@ -33,3 +33,36 @@ function registration(csr_pem, subject) {
 
     return msg;
 }
+
+function authenticate(cert_pem) {
+
+    var xhr = new XMLHttpRequest();
+    cert_b64 = atob(cert_pem);
+    json_request = { cert: cert_b64 };
+    json_request = JSON.stringify(json_request);
+    xhr.open('POST', '/authenticate', false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(json_request);
+    msg = JSON.parse(xhr.responseText);
+    msg.status = xhr.status;
+
+    return msg;
+
+}
+
+function validate_challenge(privateKey, challenge_b64) {
+
+    var xhr = new XMLHttpRequest();
+    challenge = btoa(challenge_b64);
+    validation = makeSignature(privateKey, challenge);
+    validation_b64 = atob(validation);
+    json_request = { response: validation_b64 };
+    xhr.open('POST', '/authenticate', false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(json_request);
+    msg = JSON.parse(xhr.responseText);
+    msg.status = xhr.status;
+
+    return msg;
+
+}

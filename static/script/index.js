@@ -10,6 +10,16 @@ function main() {
     challenge = atob(challenge);
     sig = makeSignature(pair.privateKey, challenge);
     verified = verifySignature(pair.publicKey, challenge, sig);
-    status_msg = status();
+    status_msg1 = status();
     registration_msg = registration(csr_pem, subject);
+    if (registration_msg.status == 200){
+        cert = atob(registration_msg.cert);
+        authenticate_msg = authenticate(cert);
+        if (authenticate_msg.status == 200){
+            status_msg2 = status();
+            challenge_b64 = authenticate_msg.challenge;
+            validate_challenge_msg = validate_challenge(pair.privateKey, challenge_b64);
+            status_msg3 = status();
+        }
+    }
 };
