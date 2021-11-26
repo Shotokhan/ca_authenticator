@@ -1,4 +1,4 @@
-function status(url) {
+function status() {
 
     var xhr = new XMLHttpRequest();
 
@@ -10,11 +10,26 @@ function status(url) {
     });
 */
 
-    xhr.open('GET', url + '/status', false);
-    xhr.setRequestHeader('ContentType', 'application/json');
+    xhr.open('GET', '/status', false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send();
     msg = JSON.parse(xhr.responseText);
     msg.status = xhr.status;
     return msg;
 
+}
+
+function registration(csr_pem, subject) {
+
+    var xhr = new XMLHttpRequest();
+    csr_b64 = btoa(csr_pem);
+    json_request = { csr: csr_b64, validity_days: subject.VALIDITY_DAYS };
+    json_request = JSON.stringify(json_request);
+    xhr.open('POST', '/registration', false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(json_request);
+    msg = JSON.parse(xhr.responseText);
+    msg.status = xhr.status;
+
+    return msg;
 }
