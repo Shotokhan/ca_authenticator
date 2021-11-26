@@ -12,6 +12,7 @@ app = Flask(__name__, static_folder="/usr/src/app/static/")
 server_pass, ca_pass = sys.argv[1], sys.argv[2]
 ca_cert = readCertificate('./volume/ca_cert.pem')
 ca_key = readKey('./volume/ca_key.pem', ca_pass)
+# TODO: secure attribute for cookie
 app.config['SECRET_KEY'] = uuid.uuid4().hex
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 nonces = set()
@@ -64,7 +65,10 @@ def validate_challenge():
             subject_data = cert.extensions[0].value.value
             session.permanent = True
             session['subject'] = project_utils.to_b64(subject_data)
-            subject_data = json.loads(subject_data)
+            try:
+                subject_data = json.loads(subject_data)
+            except json.JSONDecodeError:
+                subject_data = json.loads(subject_data.decode().replace('\\', ''))
             return project_utils.json_response({"subject": subject_data}, 200)
 
 

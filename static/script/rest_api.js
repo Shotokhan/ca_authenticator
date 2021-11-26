@@ -37,7 +37,7 @@ function registration(csr_pem, subject) {
 function authenticate(cert_pem) {
 
     var xhr = new XMLHttpRequest();
-    cert_b64 = atob(cert_pem);
+    cert_b64 = btoa(cert_pem);
     json_request = { cert: cert_b64 };
     json_request = JSON.stringify(json_request);
     xhr.open('POST', '/authenticate', false);
@@ -53,11 +53,12 @@ function authenticate(cert_pem) {
 function validate_challenge(privateKey, challenge_b64) {
 
     var xhr = new XMLHttpRequest();
-    challenge = btoa(challenge_b64);
+    challenge = atob(challenge_b64);
     validation = makeSignature(privateKey, challenge);
-    validation_b64 = atob(validation);
+    validation_b64 = btoa(validation);
     json_request = { response: validation_b64 };
-    xhr.open('POST', '/authenticate', false);
+    json_request = JSON.stringify(json_request);
+    xhr.open('POST', '/validate_challenge', false);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(json_request);
     msg = JSON.parse(xhr.responseText);

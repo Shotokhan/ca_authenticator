@@ -89,7 +89,7 @@ def signCertificateRequest(csr_cert, ca_cert, key, validity_days, save_to_file=F
     except IndexError:
         ext = csr_cert.subject.rfc4514_string()
         ext = ext.split('=')
-        ext = ext[ext.index('CN')+1].split('},')[0].encode()
+        ext = ext[ext.index('CN')+1].split('},')[0].encode() + b'}'
         cert = cert.add_extension(x509.UnrecognizedExtension(x509.ObjectIdentifier("1.2.840.113549.1.9.2"), ext), critical=False)
     cert = cert.sign(key, hashes.SHA256())
     cert_serial = serializeCert(cert)
