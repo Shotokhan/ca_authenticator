@@ -1,4 +1,5 @@
 from flask import Flask, Response, request, session
+from flask_oidc import OpenIDConnect
 from certificates_library import getSSLContext, loadCertificate, readCertificate, verifyCertificate, serializeCert, \
     verifySignature, readKey, signCertificateRequest, loadCSR
 import sys
@@ -12,11 +13,16 @@ app = Flask(__name__, static_folder="/usr/src/app/static/")
 server_pass, ca_pass = sys.argv[1], sys.argv[2]
 ca_cert = readCertificate('./volume/ca_cert.pem')
 ca_key = readKey('./volume/ca_key.pem', ca_pass)
+with open('./volume/config/config.json', 'r') as f:
+    config = json.load(f)
 # TODO: secure attribute for cookie
 app.config['SECRET_KEY'] = uuid.uuid4().hex
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
+app.config.update(config['app'])
 nonces = set()
-nonce_list_lim = 40000
+nonce_list_lim = config['misc']['nonce_list_lim']
+
+oidc = OpenIDConnect(app)
 
 
 @app.route('/authenticate', methods=['POST'], strict_slashes=False)
@@ -84,6 +90,7 @@ def get_status():
 
 
 @app.route('/registration', methods=['POST'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def registration():
     # {"csr": base64(csr), "validityDays": int}
@@ -95,10 +102,25 @@ def registration():
         csr = loadCSR(csr)
     except AssertionError:
         return project_utils.json_response({"msg": "CSR validation failed"}, 400)
-    # TODO: validate extensions based on 3rd party authentication
-    _, client_cert_ser = signCertificateRequest(csr, ca_cert, ca_key, validity_days)
-    client_cert_ser = project_utils.to_b64(client_cert_ser)
-    return project_utils.json_response({"cert": client_cert_ser}, 200)
+    client_cert, client_cert_ser = signCertificateRequest(csr, ca_cert, ca_key, validity_days)
+    ext = json.loads(client_cert.extensions[0].value.value.decode().replace('\\', ''))
+    username, role, resources = project_utils.get_oidc_info(oidc)
+    if username == ext['id'] and role == ext['role']:
+        # TODO: store association role-resources in MongoDB
+        client_cert_ser = project_utils.to_b64(client_cert_ser)
+        oidc.logout()
+        return project_utils.json_response({"cert": client_cert_ser}, 200)
+    else:
+        return project_utils.json_response({"msg": "Invalid credentials"}, 400)
+
+
+@app.route('/keycloak_login', methods=['GET'], strict_slashes=False)
+@oidc.require_login
+@project_utils.catch_error
+def keycloak_login():
+    username, role, resources = project_utils.get_oidc_info(oidc)
+    msg = f"Username {username} with role {role} can access: {', '.join(resources)}"
+    return project_utils.json_response({"msg": msg}, 200)
 
 
 @app.route('/', methods=['GET'])

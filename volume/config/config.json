@@ -1,0 +1,17 @@
+{
+	"app": {
+		"SECRET_KEY": "SomethingNotEntirelySecret",
+		"TESTING": true,
+		"DEBUG": true,
+		"OIDC_CLIENT_SECRETS": "/usr/src/app/volume/config/client_secrets.json",
+		"OIDC_ID_TOKEN_COOKIE_SECURE": false,
+		"OIDC_REQUIRE_VERIFIED_EMAIL": false,
+		"OIDC_USER_INFO_ENABLED": true,
+		"OIDC_OPENID_REALM": "flask-demo",
+		"OIDC_SCOPES": ["openid", "email", "profile", "roles"],
+		"OIDC_INTROSPECTION_AUTH_METHOD": "client_secret_post"
+	},
+	"misc": {
+		"nonce_list_lim": 40000
+	}
+}

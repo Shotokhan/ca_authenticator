@@ -39,6 +39,14 @@ def filter_validity_days(validity):
     return validity
 
 
+def get_oidc_info(oidc):
+    info = oidc.user_getinfo(['preferred_username', 'realm_access', 'resource_access'])
+    username = info.get('preferred_username')
+    role = info.get('realm_access').get('roles')[0]
+    resources = info.get('resource_access').get('flask-app').get('roles')
+    return username, role, resources
+
+
 def catch_error(func):
     @wraps(func)
     def exceptionLogger(*args, **kwargs):
@@ -46,6 +54,7 @@ def catch_error(func):
             return func(*args, **kwargs)
         except Exception as e:
             print("Exception in {}: {} {}".format(func.__name__, e.__class__.__name__, str(e)))
+            # TODO: remove this debug feature
             debug = True
             if debug:
                 return json_response({"msg": f"Generic error {func.__name__} {e.__class__.__name__} {str(e)}"}, 500)
