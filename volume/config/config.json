@@ -13,5 +13,8 @@
 	},
 	"misc": {
 		"nonce_list_lim": 40000
+	},
+	"mongo": {
+		"url": "mongodb://10.5.0.2:27017/"
 	}
 }
