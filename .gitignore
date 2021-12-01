@@ -4,3 +4,4 @@ test/
 *.pem
 volume/
 venv/
+mongodb/data/db/

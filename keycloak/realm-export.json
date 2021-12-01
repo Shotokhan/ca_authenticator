@@ -718,10 +718,6 @@
         "display.on.consent.screen": "false",
         "saml.onetimeuse.condition": "false"
       },
-      "authenticationFlowBindingOverrides": {
-        "direct_grant": "dd429302-3053-4b49-bc60-3f4bbef7cd4b",
-        "browser": "1785c54a-8440-4dd0-8755-c2755a3a2a20"
-      },
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
       "defaultClientScopes": [

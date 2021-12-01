@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3'
 
 volumes:
   postgres_data:
@@ -22,30 +22,35 @@ services:
   postgres:
     image: postgres
     volumes:
-      - ./keycloak/postgres_data:/var/lib/postgresql/data
+      - ./keycloak/postgres_data:/var/lib/postgresql/data/
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
+      # need to set PGDATA to a sub-directory to fix "invisible file error" in mount point
+      PGDATA: /var/lib/postgresql/data/pgdata/
+    networks:
+      secure_network:
+        ipv4_address: 10.5.0.3
+
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     environment:
       DB_VENDOR: POSTGRES
-      DB_ADDR: postgres
+      DB_ADDR: 10.5.0.3
       DB_DATABASE: keycloak
       DB_USER: keycloak
       DB_SCHEMA: public
       DB_PASSWORD: password
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: Pa55w0rd
-      
     ports:
       - 8080:8080
     depends_on:
       - postgres
     networks:
       secure_network:
-        ipv4_address: 10.5.0.3
+        ipv4_address: 10.5.0.4
         
   ca_authenticator:
     build: 
@@ -60,9 +65,11 @@ services:
     environment:
       CAPass: prova
       serverPass: prova
+    depends_on:
+      - keycloak
     networks:
       secure_network:
-        ipv4_address: 10.5.0.4
+        ipv4_address: 10.5.0.5
       
 networks:
   secure_network:

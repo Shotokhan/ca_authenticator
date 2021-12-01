@@ -1,12 +1,20 @@
-service=ca_authenticator_ca_authenticator_1
+build_all:
+	# because of permissions for MongoDB and Postgre
+	sudo docker-compose build
 
-
-build_up:
-	docker-compose -f ca_auth-docker-compose.yml up --build -d && docker attach ca_authenticator_ca_authenticator_1
+build:
+	# it still checks permissions -.-
+	sudo docker-compose build ca_authenticator
+	
+up:
+	docker-compose up
 	
 start:
-	docker-compose -f ca_auth-docker-compose.yml start && docker attach ca_authenticator_ca_authenticator_1
+	docker-compose start
 	
 stop:
-	docker-compose -f ca_auth-docker-compose.yml stop
+	docker-compose stop
+
+down:
+	docker-compose down ca_authenticator
 
