@@ -4,9 +4,24 @@ from certificates_library import genKeyPair, createCSR, readKey, readCertificate
 from project_utils import to_b64, from_b64
 import json
 import urllib3
+import re
 
 
 urllib3.disable_warnings()
+
+
+def keycloak_login(session, url):
+    res = session.get(url + '/keycloak_login', verify=False)
+    pat = re.compile("""http://.*/auth/realms/.*/login-actions/authenticate?.*method""")
+    next_url = re.findall(pat, res.text)
+    next_url = next_url[0]
+    next_url = next_url[:next_url.index('"')]
+    next_url = next_url.replace('amp;', '')
+    authN = session.post(next_url, data={'username': 'prova', 'password': 'prova', 'credentialId': ''},
+                         verify=False)
+    # everything is done with redirections
+    print(authN.text)
+    assert authN.url == url + '/keycloak_login'
 
 
 def local_registration():
@@ -19,12 +34,12 @@ def local_registration():
     return client_cert, client_cert_ser, key
 
 
-def remote_registration(url):
+def remote_registration(session, url):
     key = genKeyPair('./test/client_key.pem', 'prova')
     subject = readConfigFromJSON('./volume/client_data.json')
     csr, csr_ser = createCSR(subject, key)
     registration_request = {'csr': to_b64(csr_ser), 'validity_days': subject['VALIDITY_DAYS']}
-    response = requests.post(url + "/registration", json=registration_request, verify=False)
+    response = session.post(url + "/registration", json=registration_request, verify=False)
     if response.status_code == 200:
         client_cert_ser = from_b64(json.loads(response.text)['cert'])
         client_cert = loadCertificate(client_cert_ser)
@@ -36,12 +51,13 @@ def remote_registration(url):
 
 
 def test_correct_authentication(authentication_url, local=True, registration_url=None):
+    session = requests.Session()
+    keycloak_login(session, authentication_url)
     if local:
         client_cert, client_cert_ser, key = local_registration()
     else:
-        client_cert, client_cert_ser, key = remote_registration(registration_url)
+        client_cert, client_cert_ser, key = remote_registration(session, registration_url)
     auth_request = {'cert': to_b64(client_cert_ser)}
-    session = requests.Session()
     response = session.post(authentication_url + "/authenticate", json=auth_request, verify=False)
     if response.status_code == 200:
         challenge = from_b64(json.loads(response.text)['challenge'])
@@ -69,5 +85,12 @@ def test_correct_authentication(authentication_url, local=True, registration_url
 
 
 if __name__ == "__main__":
+    print("WARNING: make sure you have configured well Keycloak.")
+    print("You should have an user with username 'prova' and password 'prova', and all the related configurations.")
+    inp = input("Did you check all the configurations? [y/N]\n")
+    if inp.strip() != 'y':
+        exit(1)
     test_correct_authentication("https://127.0.0.1:5001")
+    print()
     test_correct_authentication(authentication_url="https://127.0.0.1:5001", local=False, registration_url="https://127.0.0.1:5001")
+
