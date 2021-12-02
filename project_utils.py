@@ -2,6 +2,7 @@ import base64
 import flask
 import json
 import os
+import mongo_utils
 from functools import wraps
 
 
@@ -45,6 +46,23 @@ def get_oidc_info(oidc):
     role = info.get('realm_access').get('roles')[0]
     resources = info.get('resource_access').get('flask-app').get('roles')
     return username, role, resources
+
+
+def subject_data_from_json(subject_data):
+    try:
+        subject_data = json.loads(subject_data)
+    except json.JSONDecodeError:
+        subject_data = json.loads(subject_data.decode().replace('\\', ''))
+    return subject_data
+
+
+def access_control(session, mongo_client, config, resource):
+    subject_data = from_b64(session['subject'])
+    subject_data = subject_data_from_json(subject_data)
+    role = subject_data['role']
+    role = {'role': role}
+    resources = mongo_utils.get_resources_from_role(mongo_client, config['mongo']['db_name'], config['mongo']['collection_name'], role)
+    return resource in resources
 
 
 def catch_error(func):

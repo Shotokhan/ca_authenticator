@@ -7,6 +7,7 @@ import project_utils
 import uuid
 import json
 from datetime import timedelta
+import mongo_utils
 
 
 app = Flask(__name__, static_folder="/usr/src/app/static/")
@@ -21,6 +22,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config.update(config['app'])
 nonces = set()
 nonce_list_lim = config['misc']['nonce_list_lim']
+mongo_client = mongo_utils.open_client(config['mongo']['url'])
 
 oidc = OpenIDConnect(app)
 
@@ -71,10 +73,7 @@ def validate_challenge():
             subject_data = cert.extensions[0].value.value
             session.permanent = True
             session['subject'] = project_utils.to_b64(subject_data)
-            try:
-                subject_data = json.loads(subject_data)
-            except json.JSONDecodeError:
-                subject_data = json.loads(subject_data.decode().replace('\\', ''))
+            subject_data = project_utils.subject_data_from_json(subject_data)
             return project_utils.json_response({"subject": subject_data}, 200)
 
 
@@ -106,7 +105,10 @@ def registration():
     ext = json.loads(client_cert.extensions[0].value.value.decode().replace('\\', ''))
     username, role, resources = project_utils.get_oidc_info(oidc)
     if username == ext['id'] and role == ext['role']:
-        # TODO: store association role-resources in MongoDB
+        global mongo_client
+        global config
+        data = {'role': role, 'resources': resources}
+        mongo_utils.insert_or_update(mongo_utils, config['mongo']['db_name'], config['mongo']['collection_name'], data)
         client_cert_ser = project_utils.to_b64(client_cert_ser)
         oidc.logout()
         return project_utils.json_response({"cert": client_cert_ser}, 200)
@@ -121,6 +123,21 @@ def keycloak_login():
     username, role, resources = project_utils.get_oidc_info(oidc)
     msg = f"Username {username} with role {role} can access: {', '.join(resources)}"
     return project_utils.json_response({"msg": msg}, 200)
+
+
+@app.route('/view_exam', methods=['GET'], strict_slashes=False)
+@project_utils.catch_error
+def view_exam_stub():
+    if 'subject' in session:
+        global mongo_client
+        global config
+        decision = project_utils.access_control(session, mongo_client, config, 'view-exam')
+        if decision:
+            return project_utils.json_response({"msg": "Allowed"}, 200)
+        else:
+            return project_utils.json_response({"msg": "Unauthorized"}, 401)
+    else:
+        return project_utils.json_response({"msg": "Not authenticated"}, 400)
 
 
 @app.route('/', methods=['GET'])
