@@ -108,7 +108,7 @@ def registration():
         global mongo_client
         global config
         data = {'role': role, 'resources': resources}
-        mongo_utils.insert_or_update(mongo_utils, config['mongo']['db_name'], config['mongo']['collection_name'], data)
+        mongo_utils.insert_or_update(mongo_client, config['mongo']['db_name'], config['mongo']['collection_name'], data)
         client_cert_ser = project_utils.to_b64(client_cert_ser)
         oidc.logout()
         return project_utils.json_response({"cert": client_cert_ser}, 200)
