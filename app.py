@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, session
+from flask import Flask, Response, request, session, render_template, send_from_directory
 from flask_oidc import OpenIDConnect
 from certificates_library import getSSLContext, loadCertificate, readCertificate, verifyCertificate, serializeCert, \
     verifySignature, readKey, signCertificateRequest, loadCSR
@@ -10,7 +10,7 @@ from datetime import timedelta
 import mongo_utils
 
 
-app = Flask(__name__, static_folder="/usr/src/app/static/")
+app = Flask(__name__, static_folder="/usr/src/app/static/", template_folder="/usr/src/app/static/html/")
 server_pass, ca_pass = sys.argv[1], sys.argv[2]
 ca_cert = readCertificate('./volume/ca_cert.pem')
 ca_key = readKey('./volume/ca_key.pem', ca_pass)
@@ -23,6 +23,8 @@ app.config.update(config['app'])
 nonces = set()
 nonce_list_lim = config['misc']['nonce_list_lim']
 mongo_client = mongo_utils.open_client(config['mongo']['url'])
+if config['misc']['disable_ssl_verification_for_oauth2']:
+    project_utils.disable_ssl_verification_oauth2_client()
 
 oidc = OpenIDConnect(app)
 
@@ -141,9 +143,22 @@ def view_exam_stub():
 
 
 @app.route('/', methods=['GET'])
+@project_utils.catch_error
 def index():
-    res = Response("Hello world", 200)
-    return res
+    return render_template('index.html')
+
+
+@app.route('/registration', methods=['GET'])
+@oidc.require_login
+@project_utils.catch_error
+def registration_page():
+    return render_template('registration.html')
+
+
+@app.route('/favicon.ico', methods=['GET'])
+@project_utils.catch_error
+def favicon():
+    return send_from_directory("/usr/src/app/static", "you_shall_not_pass.jpg", mimetype='image/jpg')
 
 
 if __name__ == '__main__':
