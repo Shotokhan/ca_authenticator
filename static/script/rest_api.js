@@ -10,7 +10,7 @@ function status() {
     });
 */
 
-    xhr.open('GET', '/status', false);
+    xhr.open('GET', '/api/status', false);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send();
     msg = JSON.parse(xhr.responseText);
@@ -25,7 +25,7 @@ function registration(csr_pem, subject) {
     csr_b64 = btoa(csr_pem);
     json_request = { csr: csr_b64, validity_days: subject.VALIDITY_DAYS };
     json_request = JSON.stringify(json_request);
-    xhr.open('POST', '/registration', false);
+    xhr.open('POST', '/api/registration', false);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(json_request);
     msg = JSON.parse(xhr.responseText);
@@ -40,7 +40,7 @@ function authenticate(cert_pem) {
     cert_b64 = btoa(cert_pem);
     json_request = { cert: cert_b64 };
     json_request = JSON.stringify(json_request);
-    xhr.open('POST', '/authenticate', false);
+    xhr.open('POST', '/api/authenticate', false);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(json_request);
     msg = JSON.parse(xhr.responseText);
@@ -58,7 +58,7 @@ function validate_challenge(privateKey, challenge_b64) {
     validation_b64 = btoa(validation);
     json_request = { response: validation_b64 };
     json_request = JSON.stringify(json_request);
-    xhr.open('POST', '/validate_challenge', false);
+    xhr.open('POST', '/api/validate_challenge', false);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(json_request);
     msg = JSON.parse(xhr.responseText);

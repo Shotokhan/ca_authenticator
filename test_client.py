@@ -11,7 +11,7 @@ urllib3.disable_warnings()
 
 
 def keycloak_login(session, url):
-    res = session.get(url + '/keycloak_login', verify=False)
+    res = session.get(url + '/api/keycloak_login', verify=False)
     pat = re.compile("""http://.*/auth/realms/.*/login-actions/authenticate?.*method""")
     next_url = re.findall(pat, res.text)
     next_url = next_url[0]
@@ -21,7 +21,7 @@ def keycloak_login(session, url):
                          verify=False)
     # everything is done with redirections
     print(authN.text)
-    assert authN.url == url + '/keycloak_login'
+    assert authN.url == url + '/api/keycloak_login'
 
 
 def local_registration():
@@ -39,7 +39,7 @@ def remote_registration(session, url):
     subject = readConfigFromJSON('./volume/client_data.json')
     csr, csr_ser = createCSR(subject, key)
     registration_request = {'csr': to_b64(csr_ser), 'validity_days': subject['VALIDITY_DAYS']}
-    response = session.post(url + "/registration", json=registration_request, verify=False)
+    response = session.post(url + "/api/registration", json=registration_request, verify=False)
     if response.status_code == 200:
         client_cert_ser = from_b64(json.loads(response.text)['cert'])
         client_cert = loadCertificate(client_cert_ser)
@@ -58,7 +58,7 @@ def test_correct_authentication(authentication_url, local=True, registration_url
     else:
         client_cert, client_cert_ser, key = remote_registration(session, registration_url)
     auth_request = {'cert': to_b64(client_cert_ser)}
-    response = session.post(authentication_url + "/authenticate", json=auth_request, verify=False)
+    response = session.post(authentication_url + "/api/authenticate", json=auth_request, verify=False)
     if response.status_code == 200:
         challenge = from_b64(json.loads(response.text)['challenge'])
         print(int.from_bytes(challenge, 'big'))
@@ -70,11 +70,11 @@ def test_correct_authentication(authentication_url, local=True, registration_url
         assert verifySignature(pk, server_validation, challenge, client_cert.signature_hash_algorithm)
 
         validate_challenge = {'response': validation}
-        response = session.post(authentication_url + "/validate_challenge", json=validate_challenge, verify=False)
+        response = session.post(authentication_url + "/api/validate_challenge", json=validate_challenge, verify=False)
         if response.status_code == 200:
             subject = json.loads(response.text)
             print(subject)
-            status = session.get(authentication_url + "/status", verify=False)
+            status = session.get(authentication_url + "/api/status", verify=False)
             print(json.loads(status.text)['msg'])
             print(session.cookies)
             print(f"Correct authentication with {'local' if local else 'remote'} registration")

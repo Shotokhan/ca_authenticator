@@ -27,7 +27,7 @@ mongo_client = mongo_utils.open_client(config['mongo']['url'])
 oidc = OpenIDConnect(app)
 
 
-@app.route('/authenticate', methods=['POST'], strict_slashes=False)
+@app.route('/api/authenticate', methods=['POST'], strict_slashes=False)
 @project_utils.catch_error
 def authenticate():
     # {"cert": base64(cert)}
@@ -47,7 +47,7 @@ def authenticate():
         return project_utils.json_response({"challenge": challenge}, 200)
 
 
-@app.route('/validate_challenge', methods=['POST'], strict_slashes=False)
+@app.route('/api/validate_challenge', methods=['POST'], strict_slashes=False)
 @project_utils.catch_error
 def validate_challenge():
     global nonces
@@ -77,7 +77,7 @@ def validate_challenge():
             return project_utils.json_response({"subject": subject_data}, 200)
 
 
-@app.route('/status', methods=['GET'], strict_slashes=False)
+@app.route('/api/status', methods=['GET'], strict_slashes=False)
 @project_utils.catch_error
 def get_status():
     if 'subject' in session:
@@ -88,7 +88,7 @@ def get_status():
         return project_utils.json_response({"msg": "Not authenticated"}, 200)
 
 
-@app.route('/registration', methods=['POST'], strict_slashes=False)
+@app.route('/api/registration', methods=['POST'], strict_slashes=False)
 @oidc.require_login
 @project_utils.catch_error
 def registration():
@@ -116,7 +116,7 @@ def registration():
         return project_utils.json_response({"msg": "Invalid credentials"}, 400)
 
 
-@app.route('/keycloak_login', methods=['GET'], strict_slashes=False)
+@app.route('/api/keycloak_login', methods=['GET'], strict_slashes=False)
 @oidc.require_login
 @project_utils.catch_error
 def keycloak_login():
@@ -125,7 +125,7 @@ def keycloak_login():
     return project_utils.json_response({"msg": msg}, 200)
 
 
-@app.route('/view_exam', methods=['GET'], strict_slashes=False)
+@app.route('/api/view_exam', methods=['GET'], strict_slashes=False)
 @project_utils.catch_error
 def view_exam_stub():
     if 'subject' in session:
