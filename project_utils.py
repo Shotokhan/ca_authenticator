@@ -65,6 +65,25 @@ def access_control(session, mongo_client, config, resource):
     return resource in resources
 
 
+def disable_ssl_verification_oauth2_client(python_lib_path="/usr/local/lib/python3.9/site-packages"):
+    transport = python_lib_path + "/oauth2client/transport.py"
+    with open(transport, 'r') as f:
+        code = f.read()
+    old_line = "return httplib2.Http(*args, **kwargs)"
+    new_line = "return httplib2.Http(*args, **kwargs, disable_ssl_certificate_validation=True)"
+    code = code.replace(old_line, new_line)
+    with open(transport, 'w') as f:
+        f.write(code)
+    flask_oidc_init = python_lib_path + "/flask_oidc/__init__.py"
+    with open(flask_oidc_init, 'r') as f:
+        code = f.read()
+    old_line = "credentials.refresh(httplib2.Http())"
+    new_line = "credentials.refresh(httplib2.Http(disable_ssl_certificate_validation=True))"
+    code = code.replace(old_line, new_line)
+    with open(flask_oidc_init, 'w') as f:
+        f.write(code)
+
+
 def catch_error(func):
     @wraps(func)
     def exceptionLogger(*args, **kwargs):

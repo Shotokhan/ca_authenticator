@@ -12,7 +12,7 @@ urllib3.disable_warnings()
 
 def keycloak_login(session, url):
     res = session.get(url + '/api/keycloak_login', verify=False)
-    pat = re.compile("""http://.*/auth/realms/.*/login-actions/authenticate?.*method""")
+    pat = re.compile("""http.*://.*/auth/realms/.*/login-actions/authenticate?.*method""")
     next_url = re.findall(pat, res.text)
     next_url = next_url[0]
     next_url = next_url[:next_url.index('"')]

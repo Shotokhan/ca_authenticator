@@ -12,7 +12,8 @@
 		"OIDC_INTROSPECTION_AUTH_METHOD": "client_secret_post"
 	},
 	"misc": {
-		"nonce_list_lim": 40000
+		"nonce_list_lim": 40000,
+		"disable_ssl_verification_for_oauth2": true
 	},
 	"mongo": {
 		"url": "mongodb://10.5.0.2:27017/",
