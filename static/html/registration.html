@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <link rel="icon" href="/static/image/favicon.ico" />
+    <link rel="stylesheet" href="/static/style/registration.css" />
+
+</head>
+
+<body>
+    <table>
+        <form method="post" name="formRegistration">
+        <tr>
+            <td colspan="2" align="center"><b>Registrazione al servizio<br>Tutti i campi sono obbligatori</b></td>
+        </tr>
+        <tr><td><b>username</b></td><td><input type="text" name="username" required></td></tr>
+        <tr><td><b>Password</b></td><td><input type="password" name="password" required></td></tr>
+        <tr><td><b>Conferma password</b></td><td><input type="password" name="conferma" required></td></tr>
+        <tr>
+            <td><b>Paese</b></td>
+            <td>
+                <select name="citta" required>
+                    <option>- Seleziona il tuo paese -</option>
+                    <option value="IT">Italia</option>
+                    <option value="ES">Spagna</option>
+                    <option value="FR">Francia</option>
+                    <option value="US">Stati Uniti</option>
+                    <option value="UK">Regno Unito</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Città</b></td>
+            <td>
+                <select name="citta" required>
+                    <option>- Seleziona la tua città -</option>
+                    <option value="Napoli">Napoli</option>
+                    <option value="Madrid">Madrid</option>
+                    <option value="Paris">Paris</option>
+                    <option value="Los Angeles">Los Angeles</option>
+                    <option value="London">London</option>
+                </select>
+            </td>
+        </tr>
+        <tr><td><b>organization name</b></td><td><input type="text" name="organization_name" required></td></tr>
+        <tr>
+            <td><b>role</b></td>
+            <td>
+                <select name="Ruolo" required>
+                    <option>- Seleziona il tuo ruolo -</option>
+                    <option value="Reader">Lettore</option>
+                    <option value="Writer">Scrittore</option>
+                </select>
+            </td>
+        </tr>
+        <tr><td colspan="2" align="right"><input type="button" value="Invia" onClick="formSubmit_registrazione()"></td></tr>
+        </form>
+    </table>
+    <script src="https://cdn.jsdelivr.net/npm/node-forge@0.7.0/dist/forge.min.js"></script>
+    <script src="/static/script/certificates_library.js"></script>
+    <script src="/static/script/rest_api.js"></script>
+    <script src="/static/script/registration.js"></script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
