@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, session, render_template, send_from_directory
+from flask import Flask, Response, request, session, render_template, send_from_directory, redirect
 from flask_oidc import OpenIDConnect
 from certificates_library import getSSLContext, loadCertificate, readCertificate, verifyCertificate, serializeCert, \
     verifySignature, readKey, signCertificateRequest, loadCSR
@@ -153,6 +153,24 @@ def index():
 @project_utils.catch_error
 def registration_page():
     return render_template('registration.html')
+
+
+@app.route('/login', methods=['GET'])
+@project_utils.catch_error
+def login_page():
+    return render_template('login.html')
+
+
+@app.route('/my_page', methods=['GET'])
+@project_utils.catch_error
+def page_for_user():
+    if 'subject' in session:
+        subject_data = project_utils.from_b64(session['subject'])
+        subject_data = project_utils.subject_data_from_json(subject_data)
+        msg = f"Hello {subject_data['id']}, you are logged in as {subject_data['role']}"
+        return Response(msg, 200)
+    else:
+        return redirect("/", 302)
 
 
 @app.route('/favicon.ico', methods=['GET'])

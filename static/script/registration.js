@@ -1,6 +1,6 @@
 function formSubmit_registrazione() {
-    var city = '{ "IT": "Italia", "ES": "Spagna", "UK": "Regno Unito", "US": "Stati Uniti", "FR": "Francia" }';
-    city = JSON.parse(city);
+    var country_mappings = '{ "IT": "Italia", "ES": "Spagna", "UK": "Regno Unito", "US": "Stati Uniti", "FR": "Francia" }';
+    country_mappings = JSON.parse(country_mappings);
     var username = document.formRegistration.username.value;
     var password = document.formRegistration.password.value;
     var conferma = document.formRegistration.conferma.value;
@@ -9,14 +9,14 @@ function formSubmit_registrazione() {
     var organization_name = document.formRegistration.organization_name.value;
     var role = document.formRegistration.role.options[document.formRegistration.role.selectedIndex].value;
     if (password != conferma) {
-        alert("La password confermata è diversa da quella scelta, controllare.");
+        alert("Passwords don't match");
         document.formRegistration.conferma.value = "";
         document.formRegistration.conferma.focus();
         return false;
     }
-    stateOrProvinceName = city[countryName];
+    stateOrProvinceName = country_mappings[countryName];
     pair = genKeyPair(password);
-    localStorage.setItem('enc_pair', pair)
+    localStorage.setItem('enc_key', pair.privateKeyEnc)
     k = readKey(pair.privateKeyEnc, password);
     pair.privateKey = k;
     subject = { "COUNTRY_NAME": countryName, "STATE_OR_PROVINCE_NAME": stateOrProvinceName, "LOCALITY_NAME": localityName, "ORGANIZATION_NAME": organization_name, "VALIDITY_DAYS": 3, "EXTENSION": { "id": username, "role": role } };
@@ -25,9 +25,8 @@ function formSubmit_registrazione() {
     if (registration_msg.status == 200) {
         cert = atob(registration_msg.cert);
         localStorage.setItem('cert', cert);
-        window.location.href = "/static/html/log_in.html";
+        window.location.href = "/login";
         return true;
-        }
     } else {
         alert('Registration failed');
         return false;
