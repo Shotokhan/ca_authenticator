@@ -13,7 +13,7 @@ function formSubmit_login() {
             window.location.href = "/my_page";
             return true;
         } else {
-            window.location.href = "/static/html/registration.html";
+            window.location.href = "/registration";
             return true;
         }
     }
