@@ -1,0 +1,31 @@
+*{
+    font-family: 'Poppins', sans-serif;
+}
+
+
+table {
+	width: 280px;
+	height: auto;
+	padding: 10px;
+	border: 1px solid #002c53;
+	position: absolute;
+	left: 42%;
+}
+
+
+.form_box input[type = "text"], .form_box input[type = "password"] {
+	text-align: center;
+	align-self: center;
+	width: 270px;
+
+}
+
+input {
+	color: #000000;
+}
+
+.form_box input[type = "button"] {
+	margin: 20px auto;
+	text-align: center;
+	padding: 15px 15px;
+}

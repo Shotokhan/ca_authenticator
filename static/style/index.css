@@ -1,0 +1,22 @@
+*{
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #f7f6f8;
+}
+
+h1, h2, h3 {
+    color: #3498db;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+a.registerlink {
+	color: #3498db;
+    text-align: center;
+}
