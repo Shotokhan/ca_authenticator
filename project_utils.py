@@ -33,10 +33,10 @@ def get_nonce(key_size, modulus, nonces):
     return nonce
 
 
-def filter_validity_days(validity):
+def filter_validity_days(validity, max_validity):
     validity = int(validity)
     validity = max(validity, 1)
-    validity = min(validity, 28)
+    validity = min(validity, max_validity)
     return validity
 
 

@@ -13,11 +13,19 @@
 	},
 	"misc": {
 		"nonce_list_lim": 40000,
-		"disable_ssl_verification_for_oauth2": true
+		"disable_ssl_verification_for_oauth2": true,
+		"max_validity_days": 28
 	},
 	"mongo": {
 		"url": "mongodb://10.5.0.2:27017/",
 		"db_name": "roles",
 		"collection_name": "mappings"
+	},
+	"rest_resources": {
+		"view-exam": "/api/view_exam",
+		"book-exam": "/api/book_exam",
+		"view-grade": "/api/view_grade",
+		"publish-exam": "/api/publish_exam",
+		"confirm-exam": "/api/confirm_exam"
 	}
 }

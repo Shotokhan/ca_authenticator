@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ role }}  page</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/static/style/my_page.css" />
+</head>
+<body>
+    <h1>Hello {{ username }}, you're logged in as {{ role }}</h1>
+    {% for resource in resources %}
+        <button type="button" onclick="endpoint_button_stub('{{ endpoints[resource] }}')">{{ resource }}</button>
+    {% endfor %}
+        <br> <br>
+    <button type="button" onclick="weak_logout()">Logout</button> <br>
+    <button type="button" onclick="strong_logout()">Delete authenticator</button> <br>
+    <script src="/static/script/rest_api.js"></script>
+    <script src="/static/script/my_page.js"></script>
+</body>
+</html>

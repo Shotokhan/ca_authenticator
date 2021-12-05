@@ -67,3 +67,24 @@ function validate_challenge(privateKey, challenge_b64) {
     return msg;
 
 }
+
+function logout() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/logout', false);
+    xhr.send();
+    msg = JSON.parse(xhr.responseText);
+    msg.status = xhr.status;
+
+    return msg;
+}
+
+function endpoint_call_stub(endpoint) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', endpoint, false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send();
+    msg = JSON.parse(xhr.responseText);
+    msg.status = xhr.status;
+
+    return msg;
+}

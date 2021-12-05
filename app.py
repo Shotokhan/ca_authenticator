@@ -16,9 +16,10 @@ ca_cert = readCertificate('./volume/ca_cert.pem')
 ca_key = readKey('./volume/ca_key.pem', ca_pass)
 with open('./volume/config/config.json', 'r') as f:
     config = json.load(f)
-# TODO: secure attribute for cookie
 app.config['SECRET_KEY'] = uuid.uuid4().hex
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config.update(config['app'])
 nonces = set()
 nonce_list_lim = config['misc']['nonce_list_lim']
@@ -27,6 +28,19 @@ if config['misc']['disable_ssl_verification_for_oauth2']:
     project_utils.disable_ssl_verification_oauth2_client()
 
 oidc = OpenIDConnect(app)
+
+
+def endpoint_stub(session, resource):
+    if 'subject' in session:
+        global mongo_client
+        global config
+        decision = project_utils.access_control(session, mongo_client, config, resource)
+        if decision:
+            return project_utils.json_response({"msg": "Allowed"}, 200)
+        else:
+            return project_utils.json_response({"msg": "Unauthorized"}, 401)
+    else:
+        return project_utils.json_response({"msg": "Not authenticated"}, 400)
 
 
 @app.route('/api/authenticate', methods=['POST'], strict_slashes=False)
@@ -95,10 +109,12 @@ def get_status():
 @project_utils.catch_error
 def registration():
     # {"csr": base64(csr), "validityDays": int}
+    global mongo_client
+    global config
     req = request.get_json(force=True)
     csr = project_utils.from_b64(req['csr'])
     validity_days = req['validity_days']
-    validity_days = project_utils.filter_validity_days(validity_days)
+    validity_days = project_utils.filter_validity_days(validity_days, config['misc']['max_validity_days'])
     try:
         csr = loadCSR(csr)
     except AssertionError:
@@ -107,8 +123,6 @@ def registration():
     ext = json.loads(client_cert.extensions[0].value.value.decode().replace('\\', ''))
     username, role, resources = project_utils.get_oidc_info(oidc)
     if username == ext['id'] and role == ext['role']:
-        global mongo_client
-        global config
         data = {'role': role, 'resources': resources}
         mongo_utils.insert_or_update(mongo_client, config['mongo']['db_name'], config['mongo']['collection_name'], data)
         client_cert_ser = project_utils.to_b64(client_cert_ser)
@@ -116,6 +130,14 @@ def registration():
         return project_utils.json_response({"cert": client_cert_ser}, 200)
     else:
         return project_utils.json_response({"msg": "Invalid credentials"}, 400)
+
+
+@app.route('/api/logout', methods=['GET'], strict_slashes=False)
+@project_utils.catch_error
+def logout():
+    _keys = [_key for _key in session.keys()]
+    [session.pop(key) for key in _keys]
+    return project_utils.json_response({"msg": "Logout successful"}, 200)
 
 
 @app.route('/api/keycloak_login', methods=['GET'], strict_slashes=False)
@@ -130,16 +152,31 @@ def keycloak_login():
 @app.route('/api/view_exam', methods=['GET'], strict_slashes=False)
 @project_utils.catch_error
 def view_exam_stub():
-    if 'subject' in session:
-        global mongo_client
-        global config
-        decision = project_utils.access_control(session, mongo_client, config, 'view-exam')
-        if decision:
-            return project_utils.json_response({"msg": "Allowed"}, 200)
-        else:
-            return project_utils.json_response({"msg": "Unauthorized"}, 401)
-    else:
-        return project_utils.json_response({"msg": "Not authenticated"}, 400)
+    return endpoint_stub(session, 'view-exam')
+
+
+@app.route('/api/book_exam', methods=['GET'], strict_slashes=False)
+@project_utils.catch_error
+def book_exam_stub():
+    return endpoint_stub(session, 'book-exam')
+
+
+@app.route('/api/view_grade', methods=['GET'], strict_slashes=False)
+@project_utils.catch_error
+def view_grade_stub():
+    return endpoint_stub(session, 'view-grade')
+
+
+@app.route('/api/publish_exam', methods=['GET'], strict_slashes=False)
+@project_utils.catch_error
+def publish_exam_stub():
+    return endpoint_stub(session, 'publish-exam')
+
+
+@app.route('/api/confirm_exam', methods=['GET'], strict_slashes=False)
+@project_utils.catch_error
+def confirm_exam_stub():
+    return endpoint_stub(session, 'confirm-exam')
 
 
 @app.route('/', methods=['GET'])
@@ -161,14 +198,25 @@ def login_page():
     return render_template('login.html')
 
 
+@app.route('/goodbye', methods=['GET'])
+@project_utils.catch_error
+def goodbye_page():
+    return render_template('goodbye.html')
+
+
 @app.route('/my_page', methods=['GET'])
 @project_utils.catch_error
 def page_for_user():
     if 'subject' in session:
+        global mongo_client
+        global config
         subject_data = project_utils.from_b64(session['subject'])
         subject_data = project_utils.subject_data_from_json(subject_data)
-        msg = f"Hello {subject_data['id']}, you are logged in as {subject_data['role']}"
-        return Response(msg, 200)
+        username, role = subject_data['id'], subject_data['role']
+        resources = mongo_utils.get_resources_from_role(mongo_client, config['mongo']['db_name'], config['mongo']['collection_name'], {'role': role})
+        rest_api_resources = config['rest_resources']
+        return render_template('my_page.html', username=username, role=role, resources=resources,
+                               endpoints=rest_api_resources)
     else:
         return redirect("/", 302)
 

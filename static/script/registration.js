@@ -8,6 +8,7 @@ function formSubmit_registrazione() {
     var localityName = document.formRegistration.citta.options[document.formRegistration.citta.selectedIndex].value;
     var organization_name = document.formRegistration.organization_name.value;
     var role = document.formRegistration.role.options[document.formRegistration.role.selectedIndex].value;
+    var validity_days = document.formRegistration.validity_days.value;
     if (password != conferma) {
         alert("Passwords don't match");
         document.formRegistration.conferma.value = "";
@@ -19,7 +20,7 @@ function formSubmit_registrazione() {
     localStorage.setItem('enc_key', pair.privateKeyEnc)
     k = readKey(pair.privateKeyEnc, password);
     pair.privateKey = k;
-    subject = { "COUNTRY_NAME": countryName, "STATE_OR_PROVINCE_NAME": stateOrProvinceName, "LOCALITY_NAME": localityName, "ORGANIZATION_NAME": organization_name, "VALIDITY_DAYS": 3, "EXTENSION": { "id": username, "role": role } };
+    subject = { "COUNTRY_NAME": countryName, "STATE_OR_PROVINCE_NAME": stateOrProvinceName, "LOCALITY_NAME": localityName, "ORGANIZATION_NAME": organization_name, "VALIDITY_DAYS": validity_days, "EXTENSION": { "id": username, "role": role } };
     csr_pem = createCSR(subject, pair);
     registration_msg = registration(csr_pem, subject);
     if (registration_msg.status == 200) {
