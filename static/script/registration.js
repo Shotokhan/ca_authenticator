@@ -19,6 +19,7 @@ function formSubmit_registrazione() {
 
     if(!strongPassword.test(password)) {
         alert('Select a strong password');
+        return false;
     }
 
     stateOrProvinceName = country_mappings[countryName];
