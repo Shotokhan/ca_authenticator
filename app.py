@@ -224,7 +224,7 @@ def page_for_user():
 @app.route('/favicon.ico', methods=['GET'])
 @project_utils.catch_error
 def favicon():
-    return send_from_directory("/usr/src/app/static", "you_shall_not_pass.jpg", mimetype='image/jpg')
+    return send_from_directory("/usr/src/app/static/image", "you_shall_not_pass.jpg", mimetype='image/jpg')
 
 
 if __name__ == '__main__':

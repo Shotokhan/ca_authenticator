@@ -15,6 +15,12 @@ function formSubmit_registrazione() {
         document.formRegistration.conferma.focus();
         return false;
     }
+    let strongPassword = new RegExp('(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})')
+
+    if(!strongPassword.test(password)) {
+        alert('Select a strong password');
+    }
+
     stateOrProvinceName = country_mappings[countryName];
     pair = genKeyPair(password);
     localStorage.setItem('enc_key', pair.privateKeyEnc)
