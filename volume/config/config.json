@@ -1,6 +1,5 @@
 {
 	"app": {
-		"SECRET_KEY": "SomethingNotEntirelySecret",
 		"TESTING": true,
 		"DEBUG": true,
 		"OIDC_CLIENT_SECRETS": "/usr/src/app/volume/config/client_secrets.json",

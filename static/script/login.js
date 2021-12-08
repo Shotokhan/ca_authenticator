@@ -5,7 +5,12 @@ function formSubmit_login() {
     if (authenticate_msg.status == 200) {
         var enc_key = localStorage.getItem('enc_key');
         var password = lnkSubmit.password.value;
-        var privateKey = readKey(enc_key, password);
+        try {
+            var privateKey = readKey(enc_key, password);
+        } catch (error) {
+            alert(error);
+            return false;
+        }
         challenge_b64 = authenticate_msg.challenge;
         validate_challenge_msg = validate_challenge(privateKey, challenge_b64);
         status_msg = status();

@@ -183,26 +183,40 @@ def verifyTimeValidity(cert_to_check):
 
 
 if __name__ == "__main__":
-    k1 = genKeyPair('./test/ca_key.pem', 'prova')
-    k2 = readKey('./test/ca_key.pem', 'prova')
-    print("RSA private key's d")
-    print(k2.private_numbers().d, end='\n\n')
+    debug = False
+    CAPass = input('Password for encrypting CA private key\n> ').strip()
+    ca_key_file = './test/ca_key.pem'
+    k1 = genKeyPair(ca_key_file, CAPass)
+    print(f"Encrypted CA private key written to {ca_key_file}")
+    k2 = readKey(ca_key_file, CAPass)
+    if debug:
+        print("RSA private key's d")
+        print(k2.private_numbers().d, end='\n\n')
     ca_data = readConfigFromJSON("./volume/ca_data.json")
-    c1 = createSelfSignedCert("./test/ca_cert.pem", ca_data, k2)
-    c2 = readCertificate("./test/ca_cert.pem")
-    print("Self signed certificate's serial number")
-    print(c2.serial_number, end='\n\n')
-    print("Self signed certificate's subject")
-    print(c2.subject, end='\n\n')
+    ca_cert_file = "./test/ca_cert.pem"
+    c1 = createSelfSignedCert(ca_cert_file, ca_data, k2)
+    print(f"CA Certificate written to {ca_cert_file}")
+    c2 = readCertificate(ca_cert_file)
+    if debug:
+        print("Self signed certificate's serial number")
+        print(c2.serial_number, end='\n\n')
+        print("Self signed certificate's subject")
+        print(c2.subject, end='\n\n')
     server_data = readConfigFromJSON("./volume/server_data.json")
-    new_k = genKeyPair('./test/server_key.pem', 'prova')
+    serverPass = input('Password for encrypting server private key\n> ').strip()
+    server_key_file = './test/server_key.pem'
+    new_k = genKeyPair(server_key_file, serverPass)
+    print(f"Encrypted server private key written to {server_key_file}")
     csr, _ = createCSR(server_data, new_k)
-    print("CSR's extension")
-    print(csr.extensions[0].value, end='\n\n')
-    new_cert, _ = signCertificateRequest(csr, c2, k2, 7, save_to_file=True, outfile='./test/server_cert.pem')
-    new_c2 = readCertificate('./test/server_cert.pem')
+    if debug:
+        print("CSR's extension")
+        print(csr.extensions[0].value, end='\n\n')
+    validity_days = int(input('Validity days for server certificate\n> ').strip())
+    server_cert_file = './test/server_cert.pem'
+    new_cert, _ = signCertificateRequest(csr, c2, k2, validity_days, save_to_file=True, outfile=server_cert_file)
+    print(f"Server Certificate written to {server_cert_file}")
+    new_c2 = readCertificate(server_cert_file)
     verify = verifyCertificate(c2, new_c2)
-    print("Verify of the certificate signed by the CA")
-    print(f"{verify = }", end='\n\n')
-
-
+    if debug:
+        print("Verify of the certificate signed by the CA")
+        print(f"{verify = }", end='\n\n')
