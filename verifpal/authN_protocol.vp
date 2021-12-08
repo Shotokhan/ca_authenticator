@@ -1,0 +1,65 @@
+attacker[active]
+
+principal Client[
+    knows private passphrase
+    knows private salt
+    knows private enc_RSA_key
+    knows private subject_data
+    knows private cert_signature
+    key, iv = HKDF(salt, passphrase, nil)
+    RSA_key = DEC(key, enc_RSA_key) // iv is used too; this is AES-CBC
+    public_key = G^RSA_key // public key from private key
+    certificate = CONCAT(subject_data, public_key, cert_signature)
+]
+
+principal Server[
+    knows private secret_key
+    knows private ca_pk
+]
+
+// certificate is in square brackets to denote integrity and authenticity
+// they are provided by certificate verification and by HTTPS
+Client -> Server : [certificate]
+
+principal Server[
+    subject, client_pk, cert_sig = SPLIT(certificate)
+    // this step is AFTER a correct registration, and brought here only to visualize it in the diagram
+    _ = SIGNVERIF(ca_pk, CONCAT(subject, client_pk), cert_sig)
+    generates challenge
+    // in the actual protocol there is certificate, for simplicity we put here client_pk
+    message = CONCAT(client_pk, challenge)
+    hmac = MAC(secret_key, message)
+    session = CONCAT(message, hmac)
+]
+
+// server is authenticated with client because of HTTPS
+Server -> Client : [session]
+
+principal Client[
+    msg, token = SPLIT(session)
+    _, chal = SPLIT(msg)
+    response = SIGN(RSA_key, chal)
+    sess_token = CONCAT(msg, token)
+]
+
+Client -> Server : response, sess_token
+
+principal Server[
+    rcvd_msg, rcvd_hmac = SPLIT(sess_token)
+    check_hmac = MAC(secret_key, rcvd_msg)
+    _ = ASSERT(check_hmac, rcvd_hmac)?
+    rcvd_cert, rcvd_chal = SPLIT(rcvd_msg)
+    _ = SIGNVERIF(rcvd_cert, rcvd_chal, response)?
+    new_hmac = MAC(secret_key, subject)
+    new_session = CONCAT(subject, new_hmac)
+]
+
+Server -> Client : new_session
+
+queries[
+    confidentiality? secret_key
+    confidentiality? RSA_key
+    authentication? Client -> Server : [certificate]
+    authentication? Server -> Client : [session]
+    authentication? Client -> Server : response
+]

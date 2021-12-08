@@ -1,0 +1,51 @@
+attacker[active]
+
+principal Client[
+    knows private RSA_key
+    public_key = G^RSA_key // public key from private key
+]
+
+principal Server[
+    knows private secret_key
+    knows private ca_pk
+]
+
+// public_key is in square brackets to denote integrity and authenticity
+// they are provided by certificate verification and by HTTPS
+Client -> Server : [public_key]
+
+principal Server[
+    generates challenge
+    // in the actual protocol there is certificate, for simplicity we put here client_pk
+    message = CONCAT(public_key, challenge)
+    hmac = MAC(secret_key, message)
+]
+
+// server is authenticated with client because of HTTPS
+Server -> Client : [message], [hmac]
+
+principal Client[
+    _, chal = SPLIT(message)
+    response = SIGN(RSA_key, chal)
+    sess_token = CONCAT(message, hmac)
+]
+
+Client -> Server : response, sess_token
+
+principal Server[
+    rcvd_msg, rcvd_hmac = SPLIT(sess_token)
+    check_hmac = MAC(secret_key, rcvd_msg)
+    _ = ASSERT(check_hmac, rcvd_hmac)?
+    rcvd_cert, rcvd_chal = SPLIT(rcvd_msg)
+    _ = SIGNVERIF(rcvd_cert, rcvd_chal, response)?
+    generates subject
+    new_hmac = MAC(secret_key, subject)
+]
+
+Server -> Client : subject, new_hmac
+
+queries[
+    confidentiality? secret_key
+    confidentiality? RSA_key
+    authentication? Client -> Server : response
+]
