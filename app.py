@@ -221,6 +221,13 @@ def page_for_user():
         return redirect("/", 302)
 
 
+@app.route('/terms_and_conditions', methods=['GET'])
+@project_utils.catch_error
+def terms_and_conditions():
+    root_url = request.root_url
+    return render_template('terms_and_conditions.html', root_url=root_url)
+
+
 @app.route('/favicon.ico', methods=['GET'])
 @project_utils.catch_error
 def favicon():
