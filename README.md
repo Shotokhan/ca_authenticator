@@ -30,7 +30,7 @@ The steps to follow in Keycloak are the following:
 11) Now it's time to make the mapping between Realm Roles and Client Roles.
     
     - Go to Roles -> student -> Composite Roles -> Client Roles, select <Your new client> and select ```book-exam```, ```view-exam```, and ```view-grade``` from Available Roles to make them Associated Roles; 
-    - Go to Roles -> student -> Composite Roles -> Client Roles, select <Your new client> and select ```confirm-exam``` and ```publish-exam``` from Available Roles to make them Associated Roles;
+    - Go to Roles -> teacher -> Composite Roles -> Client Roles, select <Your new client> and select ```confirm-exam``` and ```publish-exam``` from Available Roles to make them Associated Roles;
 12) Go to Users -> Add User and specify at least the Username (for example 'prova' if you want to run test_client.py), leaving On the tick for ```User Enabled```;
 13) Go to Users -> <Your new user> -> Credentials and set a non-temporary password (for the user 'prova' the password should be 'prova' to run the test);
 14) Go to Users -> <Your new user> -> Role Mappings -> Realm Roles and select a role from Available Roles to make it an Assigned Role (```student``` for the user 'prova'), now if you open, in the same window, Client Roles -> <Your new client> you can see that the user has the Effective Roles assigned to the Client Roles mapped to the Composite Realm Role assigned to it;
