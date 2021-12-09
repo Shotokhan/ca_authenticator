@@ -91,5 +91,5 @@ def catch_error(func):
             return func(*args, **kwargs)
         except Exception as e:
             print("Exception in {}: {} {}".format(func.__name__, e.__class__.__name__, str(e)))
-            return json_response({"msg": f"Generic error {func.__name__} {e.__class__.__name__} {str(e)}"}, 500)
+            return json_response({"msg": "Generic error"}, 500)
     return exceptionLogger
