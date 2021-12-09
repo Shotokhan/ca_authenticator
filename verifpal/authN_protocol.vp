@@ -54,7 +54,7 @@ principal Server[
     new_session = CONCAT(subject, new_hmac)
 ]
 
-Server -> Client : new_session
+Server -> Client : [new_session]
 
 queries[
     confidentiality? secret_key

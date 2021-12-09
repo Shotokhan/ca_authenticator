@@ -16,7 +16,7 @@ Client -> Server : [public_key]
 
 principal Server[
     generates challenge
-    // in the actual protocol there is certificate, for simplicity we put here client_pk
+    // in the actual protocol there is certificate, for simplicity we put here public_key
     message = CONCAT(public_key, challenge)
     hmac = MAC(secret_key, message)
 ]
@@ -42,7 +42,7 @@ principal Server[
     new_hmac = MAC(secret_key, subject)
 ]
 
-Server -> Client : subject, new_hmac
+Server -> Client : [subject], [new_hmac]
 
 queries[
     confidentiality? secret_key
