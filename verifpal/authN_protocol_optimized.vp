@@ -48,4 +48,5 @@ queries[
     confidentiality? secret_key
     confidentiality? RSA_key
     authentication? Client -> Server : response
+    freshness? response
 ]
