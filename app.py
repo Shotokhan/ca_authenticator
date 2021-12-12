@@ -57,7 +57,7 @@ def authenticate():
     else:
         pk = cert.public_key()
         challenge = project_utils.get_nonce(pk.key_size, pk.public_numbers().n, nonces)
-        challenge = project_utils.to_b64(challenge.to_bytes(pk.key_size, byteorder='big'))
+        challenge = project_utils.to_b64(challenge.to_bytes(pk.key_size // 8, byteorder='big'))
         session['challenge'] = challenge
         session['certificate'] = project_utils.to_b64(serializeCert(cert))
         return project_utils.json_response({"challenge": challenge}, 200)
@@ -235,6 +235,8 @@ def favicon():
 
 
 if __name__ == '__main__':
-    # password = input("Password for server certificate's private key\n>>")
-    context = getSSLContext('./volume/server_cert.pem', './volume/server_key.pem', server_pass)
-    app.run(host="0.0.0.0", port="5001", ssl_context=context)
+    if config['misc']['use_https']:
+        context = getSSLContext('./volume/server_cert.pem', './volume/server_key.pem', server_pass)
+        app.run(host="0.0.0.0", port="5001", ssl_context=context)
+    else:
+        app.run(host="0.0.0.0", port="5001")

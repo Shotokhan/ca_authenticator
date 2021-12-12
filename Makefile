@@ -1,10 +1,8 @@
 build_all:
-	# because of permissions for MongoDB and Postgre
-	sudo docker-compose build
+	docker-compose build
 
 build:
-	# it still checks permissions -.-
-	sudo docker-compose build ca_authenticator
+	docker-compose build ca_authenticator
 	
 up:
 	docker-compose up

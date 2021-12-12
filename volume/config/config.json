@@ -13,7 +13,8 @@
 	"misc": {
 		"nonce_list_lim": 40000,
 		"disable_ssl_verification_for_oauth2": true,
-		"max_validity_days": 28
+		"max_validity_days": 28,
+		"use_https": true
 	},
 	"mongo": {
 		"url": "mongodb://10.5.0.2:27017/",

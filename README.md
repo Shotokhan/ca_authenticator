@@ -48,6 +48,7 @@ The last thing to configure is ```/volume/config/config.json```:
     + ```nonce_list_lim``` is the maximum number of nonces the server can store for challenge-response handshakes before re-spawning the app's secret key;
     + ```disable_ssl_verification_for_oauth2``` should be set to false only if Keycloak's certificate is a worldwide valid certificate;
     + ```max_validity_days``` is the maximum number of validity days for client certificates;
+    + ```use_https``` tell the app if to run on HTTPS or not;
 - the ```mongo``` section contains mongo's url and the pair (db_name, collection_name) to tell where to store the mappings between role and resources;
 - the ```rest_resources``` section contains mapping between resources, intended as client roles, and REST API endpoints: it's important for the actual access control.
 
