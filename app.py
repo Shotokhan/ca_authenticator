@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, session, render_template, send_from_directory, redirect
+from flask import Flask, Response, request, session, render_template, send_from_directory, redirect, g
 from flask_oidc import OpenIDConnect
 from certificates_library import getSSLContext, loadCertificate, readCertificate, verifyCertificate, serializeCert, \
     verifySignature, readKey, signCertificateRequest, loadCSR
@@ -7,7 +7,7 @@ import project_utils
 import uuid
 import json
 from datetime import timedelta
-import mongo_utils
+import hashlib
 
 
 app = Flask(__name__, static_folder="/usr/src/app/static/", template_folder="/usr/src/app/static/html/")
@@ -23,18 +23,23 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config.update(config['app'])
 nonces = set()
 nonce_list_lim = config['misc']['nonce_list_lim']
-mongo_client = mongo_utils.open_client(config['mongo']['url'])
 if config['misc']['disable_ssl_verification_for_oauth2']:
     project_utils.disable_ssl_verification_oauth2_client()
 
-oidc = OpenIDConnect(app)
+credentials_store = {}
+oidc = OpenIDConnect(app, credentials_store)
 
 
-def endpoint_stub(session, resource):
+def endpoint_stub(oidc, session, resource):
     if 'subject' in session:
         global mongo_client
         global config
-        decision = project_utils.access_control(session, mongo_client, config, resource)
+        username, role, resources = project_utils.get_oidc_info(oidc)
+        subject_data = project_utils.from_b64(session['subject'])
+        subject_data = project_utils.subject_data_from_json(subject_data)
+        decision = resource in resources
+        decision &= username == subject_data['id']
+        decision &= role == subject_data['role']
         if decision:
             return project_utils.json_response({"msg": "Allowed"}, 200)
         else:
@@ -44,6 +49,7 @@ def endpoint_stub(session, resource):
 
 
 @app.route('/api/authenticate', methods=['POST'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def authenticate():
     # {"cert": base64(cert)}
@@ -64,6 +70,7 @@ def authenticate():
 
 
 @app.route('/api/validate_challenge', methods=['POST'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def validate_challenge():
     global nonces
@@ -77,13 +84,14 @@ def validate_challenge():
     if not validate:
         return project_utils.json_response({"msg": "Challenge validation failed"}, 400)
     else:
-        if challenge in nonces:
+        hash_chall = hashlib.sha1(challenge).hexdigest()
+        if hash_chall in nonces:
             return project_utils.json_response({"msg": "Nonce reuse"}, 400)
         else:
             if len(nonces) >= nonce_list_lim:
                 nonces = set()
                 app.config['SECRET_KEY'] = uuid.uuid4().hex
-            nonces.add(int.from_bytes(challenge, byteorder='big'))
+            nonces.add(hash_chall)
             _keys = [_key for _key in session.keys()]
             [session.pop(key) for key in _keys]
             subject_data = cert.extensions[0].value.value
@@ -121,23 +129,31 @@ def registration():
         return project_utils.json_response({"msg": "CSR validation failed"}, 400)
     client_cert, client_cert_ser = signCertificateRequest(csr, ca_cert, ca_key, validity_days)
     ext = json.loads(client_cert.extensions[0].value.value.decode().replace('\\', ''))
-    username, role, resources = project_utils.get_oidc_info(oidc)
+    username, role, _ = project_utils.get_oidc_info(oidc)
     if username == ext['id'] and role == ext['role']:
-        data = {'role': role, 'resources': resources}
-        mongo_utils.insert_or_update(mongo_client, config['mongo']['db_name'], config['mongo']['collection_name'], data)
         client_cert_ser = project_utils.to_b64(client_cert_ser)
-        oidc.logout()
         return project_utils.json_response({"cert": client_cert_ser}, 200)
     else:
         return project_utils.json_response({"msg": "Invalid credentials"}, 400)
 
 
 @app.route('/api/logout', methods=['GET'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def logout():
+    global credentials_store
     _keys = [_key for _key in session.keys()]
     [session.pop(key) for key in _keys]
-    return project_utils.json_response({"msg": "Logout successful"}, 200)
+    headers = {}
+    headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    headers['Pragma'] = 'no-cache'
+    headers['Expires'] = '0'
+    try:
+        oidc.logout()
+        credentials_store.pop(g.oidc_id_token['sub'])
+    except:
+        pass
+    return project_utils.json_response({"msg": "Logout successful"}, 200, headers)
 
 
 @app.route('/api/keycloak_login', methods=['GET'], strict_slashes=False)
@@ -150,61 +166,72 @@ def keycloak_login():
 
 
 @app.route('/api/view_exam', methods=['GET'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def view_exam_stub():
-    return endpoint_stub(session, 'view-exam')
+    return endpoint_stub(oidc, session, 'view-exam')
 
 
 @app.route('/api/book_exam', methods=['GET'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def book_exam_stub():
-    return endpoint_stub(session, 'book-exam')
+    return endpoint_stub(oidc, session, 'book-exam')
 
 
 @app.route('/api/view_grade', methods=['GET'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def view_grade_stub():
-    return endpoint_stub(session, 'view-grade')
+    return endpoint_stub(oidc, session, 'view-grade')
 
 
 @app.route('/api/publish_exam', methods=['GET'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def publish_exam_stub():
-    return endpoint_stub(session, 'publish-exam')
+    return endpoint_stub(oidc, session, 'publish-exam')
 
 
 @app.route('/api/confirm_exam', methods=['GET'], strict_slashes=False)
+@oidc.require_login
 @project_utils.catch_error
 def confirm_exam_stub():
-    return endpoint_stub(session, 'confirm-exam')
+    return endpoint_stub(oidc, session, 'confirm-exam')
 
 
 @app.route('/', methods=['GET'])
 @project_utils.catch_error
 def index():
-    return render_template('index.html')
+    csp, nonce = project_utils.content_security_policy()
+    return render_template('index.html', csp=csp, nonce=nonce)
 
 
 @app.route('/registration', methods=['GET'])
 @oidc.require_login
 @project_utils.catch_error
 def registration_page():
-    return render_template('registration.html')
+    csp, nonce = project_utils.content_security_policy()
+    return render_template('registration.html', csp=csp, nonce=nonce)
 
 
 @app.route('/login', methods=['GET'])
+@oidc.require_login
 @project_utils.catch_error
 def login_page():
-    return render_template('login.html')
+    csp, nonce = project_utils.content_security_policy()
+    return render_template('login.html', csp=csp, nonce=nonce)
 
 
 @app.route('/goodbye', methods=['GET'])
 @project_utils.catch_error
 def goodbye_page():
-    return render_template('goodbye.html')
+    csp, _ = project_utils.content_security_policy()
+    return render_template('goodbye.html', csp=csp, nonce=nonce)
 
 
 @app.route('/my_page', methods=['GET'])
+@oidc.require_login
 @project_utils.catch_error
 def page_for_user():
     if 'subject' in session:
@@ -213,10 +240,11 @@ def page_for_user():
         subject_data = project_utils.from_b64(session['subject'])
         subject_data = project_utils.subject_data_from_json(subject_data)
         username, role = subject_data['id'], subject_data['role']
-        resources = mongo_utils.get_resources_from_role(mongo_client, config['mongo']['db_name'], config['mongo']['collection_name'], {'role': role})
+        _, _, resources = project_utils.get_oidc_info(oidc)
         rest_api_resources = config['rest_resources']
+        csp, nonce = project_utils.content_security_policy()
         return render_template('my_page.html', username=username, role=role, resources=resources,
-                               endpoints=rest_api_resources)
+                               endpoints=rest_api_resources, csp=csp, nonce=nonce)
     else:
         return redirect("/", 302)
 
@@ -225,7 +253,8 @@ def page_for_user():
 @project_utils.catch_error
 def terms_and_conditions():
     root_url = request.root_url
-    return render_template('terms_and_conditions.html', root_url=root_url)
+    csp, _ = project_utils.content_security_policy()
+    return render_template('terms_and_conditions.html', root_url=root_url, csp=csp)
 
 
 @app.route('/favicon.ico', methods=['GET'])

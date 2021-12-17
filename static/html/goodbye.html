@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="{{ csp }}">
     <title>Goodbye</title>
     <link rel="icon" href="/favicon.ico" />
     <link rel="stylesheet" href="/static/style/goodbye.css" />
@@ -14,9 +15,17 @@
         <h2>Thank you for using our web service</h2>
         </div>
         <div>
-        <input type="button" name="Back home" value="Back home" onclick="window.location.href = '/';" />
+        <input type="button" name="Back home" value="Back home" id="back_home" />
         </div>
     </div>
+    <script nonce="{{ nonce }}">
+      document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('back_home')
+        .addEventListener('click', function() {
+            window.location.href = '/';
+        });
+    });
+  </script>
 </body>
 
 </html>
