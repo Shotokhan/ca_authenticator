@@ -226,7 +226,7 @@ def login_page():
 @app.route('/goodbye', methods=['GET'])
 @project_utils.catch_error
 def goodbye_page():
-    csp, _ = project_utils.content_security_policy()
+    csp, nonce = project_utils.content_security_policy()
     return render_template('goodbye.html', csp=csp, nonce=nonce)
 
 

@@ -42,7 +42,7 @@ def get_nonce(key_size, modulus, nonces):
 def content_security_policy():
     nonce = to_b64(os.urandom(16))
     csp = """
-    default-src 'none'; script-src 'self' https://cdn.jsdelivr.net/npm/node-forge@0.7.0/dist/forge.min.js 'nonce-{}'; style-src 'self'; img-src 'self'; connect-src 'self'
+    default-src 'none'; script-src 'nonce-{}' 'strict-dynamic' http: https: 'unsafe-inline'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'self'
     """.format(nonce)
     return csp, nonce
 
