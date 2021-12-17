@@ -4,6 +4,7 @@ import json
 import os
 import mongo_utils
 from functools import wraps
+import hashlib
 
 
 def from_b64(msg):
@@ -19,18 +20,31 @@ def to_b64(msg):
     return encoded.decode()
 
 
-def json_response(msg_dict, status_code):
-    res = flask.Response(json.dumps(msg_dict, default=str), status=status_code, mimetype='application/json')
+def json_response(msg_dict, status_code, headers=None):
+    if headers is None:
+        res = flask.Response(json.dumps(msg_dict, default=str), status=status_code, mimetype='application/json')
+    else:
+        res = flask.Response(json.dumps(msg_dict, default=str), status=status_code, mimetype='application/json', headers=headers)
     return res
 
 
 def get_nonce(key_size, modulus, nonces):
     while True:
         # https://cryptography.io/en/latest/random-numbers/?highlight=random
-        nonce = int.from_bytes(os.urandom(key_size // 8), byteorder='big')
-        if nonce < modulus and nonce not in nonces:
+        nonce = os.urandom(key_size // 8)
+        hash_nonce = hashlib.sha1(nonce).hexdigest()
+        nonce = int.from_bytes(nonce, byteorder='big')
+        if nonce < modulus and hash_nonce not in nonces:
             break
     return nonce
+
+
+def content_security_policy():
+    nonce = to_b64(os.urandom(16))
+    csp = """
+    default-src 'none'; script-src 'nonce-{}' 'strict-dynamic' http: https: 'unsafe-inline'; style-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'self'
+    """.format(nonce)
+    return csp, nonce
 
 
 def filter_validity_days(validity, max_validity):

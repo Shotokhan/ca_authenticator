@@ -2,19 +2,38 @@
 <html lang="">
 <head>
     <meta charset="UTF-8">
-    <title>{{ role }}  page</title>
+    <meta http-equiv="Content-Security-Policy" content="{{ csp }}">
+    <title>{{ role|e }} page</title>
     <link rel="icon" href="/favicon.ico" />
     <link rel="stylesheet" href="/static/style/my_page.css" />
 </head>
 <body>
-    <h1>Hello {{ username }}, you're logged in as {{ role }}</h1>
+    <h1>Hello {{ username|e }}, you're logged in as {{ role|e }}</h1>
     {% for resource in resources %}
-        <button type="button" onclick="endpoint_button_stub('{{ endpoints[resource] }}')">{{ resource }}</button>
+        <button type="button" id="{{ endpoints[resource] | e }}">{{ resource|e }}</button>
     {% endfor %}
         <br> <br>
-    <button type="button" onclick="weak_logout()">Logout</button> <br>
-    <button type="button" onclick="strong_logout()">Delete authenticator</button> <br>
-    <script src="/static/script/rest_api.js"></script>
-    <script src="/static/script/my_page.js"></script>
+    <button type="button" id="weak_logout">Logout</button> <br>
+    <button type="button" id="strong_logout">Delete authenticator</button> <br>
+    <script nonce="{{ nonce }}" src="/static/script/rest_api.js"></script>
+    <script nonce="{{ nonce }}" src="/static/script/my_page.js"></script>
+    <script nonce="{{ nonce }}">
+      document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('weak_logout')
+        .addEventListener('click', weak_logout);
+    });
+      document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('strong_logout')
+        .addEventListener('click', strong_logout);
+    });
+    {% for resource in resources %}
+        document.addEventListener('DOMContentLoaded', function () {
+          document.getElementById('{{ endpoints[resource] | e }}')
+            .addEventListener('click', function() {
+                endpoint_button_stub('{{ endpoints[resource] | e }}');
+            });
+        });
+    {% endfor %}
+  </script>
 </body>
 </html>

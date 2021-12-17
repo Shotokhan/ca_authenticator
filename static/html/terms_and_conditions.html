@@ -1,24 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <meta http-equiv="Content-Security-Policy" content="{{ csp }}">
 <title>Terms and Conditions for Platform for student and teacher</title>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" type="text/css" href="/static/html/terms_and_conditions_files/livelink.css">
 <meta name="robots" content="noindex">
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-10195353-21', { 'anonymize_ip': true });
-    </script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-SG3Z1F2PNY');
-    </script>
 </head>
 <body>
 <div class="page">
@@ -85,7 +74,7 @@ by a third-party that may be displayed, included or made available by
 the Service.</p>
 </li>
 <li>
-<p><strong>Website</strong> refers to Platform for student and teacher, accessible from <a href="{{ root_url }}" rel="external nofollow noopener" target="_blank">{{ root_url }}</a></p>
+<p><strong>Website</strong> refers to Platform for student and teacher, accessible from <a href="{{ root_url|e }}" rel="external nofollow noopener" target="_blank">{{ root_url|e }}</a></p>
 </li>
 <li>
 <p><strong>You</strong> means the individual accessing or using the 
@@ -238,54 +227,6 @@ website and the Service.</p>
 </div>
 
 </div>
-<script type="text/javascript">
-    const tabLinks = Array.from(document.querySelectorAll(".tab-link"));
-    const tabContents = document.querySelectorAll(".tab-content");
-    
-    tabLinks.forEach(function(tabLink) {
-        tabLink.addEventListener("click", toggleTab);
-    });
-    
-    let priorActiveTab = null;
-    
-    function toggleTab(event) {
-        tabLinks.forEach(function(tabLink, index){
-            tabLink.classList.remove("active");
-            tabLink.classList.add("inactive");
-        
-            tabContents[index].classList.remove("visible");
-            tabContents[index].classList.add("hidden");
-        });
-
-        if(priorActiveTab === this) {
-            this.classList.remove("active");
-            this.classList.add("inactive");
-
-            tabContents[tabLinks.indexOf(this)].classList.remove("visible");
-            tabContents[tabLinks.indexOf(this)].classList.add("hidden");
-
-            priorActiveTab = null;
-        } else {
-            this.classList.remove("inactive");
-            this.classList.add("active");
-        
-            tabContents[tabLinks.indexOf(this)].classList.remove("hidden");
-            tabContents[tabLinks.indexOf(this)].classList.add("visible");
-        
-            priorActiveTab = this;
-        }
-        
-        if (priorActiveTab === null) {
-            this.classList.remove("inactive");
-            this.classList.add("active");
-        
-            tabContents[tabLinks.indexOf(this)].classList.remove("hidden");
-            tabContents[tabLinks.indexOf(this)].classList.add("visible");
-        }
-      
-        event.preventDefault();
-    }
-</script>
 <img src="/static/html/terms_and_conditions_files/px.gif" style="position:fixed;right:0px;bottom:0px;display:none;">
 
 </body></html>

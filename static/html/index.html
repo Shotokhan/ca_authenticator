@@ -2,6 +2,7 @@
 <html lang="">
   <head>
       <meta charset="utf-8">
+      <meta http-equiv="Content-Security-Policy" content="{{ csp }}">
       <link rel="icon" href="/favicon.ico" />
       <link rel="stylesheet" href="/static/style/index.css" />
     <title>
@@ -10,7 +11,7 @@
   </head>
   <body>
     <header></header>
-    <main onload="main()">
+    <main>
         <div id="welcome">
             <div>
                 <h1>Welcome</h1>
@@ -20,18 +21,21 @@
             </div>
             <div class="box-1">
                 <p><h2>Access to the application</h2></p>
-                <p><h2><a onclick="main()" class="registerlink">Go-></a></h2></p>
+                <p><h2><a id="main" class="registerlink">Go-></a></h2></p>
             </div>
         </div>
     </main>
     <footer></footer>
   </body>
-  <script src="https://cdn.jsdelivr.net/npm/node-forge@0.7.0/dist/forge.min.js"></script>
-  <script src="/static/script/certificates_library.js"></script>
-  <script src="/static/script/rest_api.js"></script>
-  <script src="/static/script/index.js"></script>
-  <script>
+  <script nonce="{{ nonce }}" src="/static/script/certificates_library.js"></script>
+  <script nonce="{{ nonce }}" src="/static/script/rest_api.js"></script>
+  <script nonce="{{ nonce }}" src="/static/script/index.js"></script>
+  <script nonce="{{ nonce }}">
       window.open("/terms_and_conditions");
+      document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('main')
+        .addEventListener('click', main);
+    });
   </script>
 
 </html>
