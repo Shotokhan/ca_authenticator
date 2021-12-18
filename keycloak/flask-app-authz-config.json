@@ -1,0 +1,200 @@
+{
+  "allowRemoteResourceManagement": true,
+  "policyEnforcementMode": "ENFORCING",
+  "resources": [
+    {
+      "name": "Default Resource",
+      "type": "urn:flask-app:resources:default",
+      "ownerManagedAccess": false,
+      "attributes": {},
+      "_id": "2d69217c-7a18-4691-9156-67c32d3efc5a",
+      "uris": [
+        "/*"
+      ]
+    },
+    {
+      "name": "book-exam",
+      "ownerManagedAccess": false,
+      "displayName": "book-exam",
+      "attributes": {},
+      "_id": "843c6099-4a64-4800-ab93-edc08b06df9c",
+      "uris": [
+        "/api/book_exam"
+      ],
+      "scopes": [
+        {
+          "name": "do"
+        }
+      ]
+    },
+    {
+      "name": "view-exam",
+      "ownerManagedAccess": false,
+      "displayName": "view-exam",
+      "attributes": {},
+      "_id": "4f18bd27-ccf1-46cf-8edc-0caa4e0c8eb9",
+      "uris": [
+        "/api/view_exam"
+      ],
+      "scopes": [
+        {
+          "name": "do"
+        }
+      ]
+    },
+    {
+      "name": "view-grade",
+      "ownerManagedAccess": false,
+      "displayName": "view-grade",
+      "attributes": {},
+      "_id": "47a02573-5907-43f7-815d-733f0d7260ff",
+      "uris": [
+        "/api/view_grade"
+      ],
+      "scopes": [
+        {
+          "name": "do"
+        }
+      ]
+    },
+    {
+      "name": "publish-exam",
+      "ownerManagedAccess": false,
+      "displayName": "publish-exam",
+      "attributes": {},
+      "_id": "6aba444a-3268-48c4-a30b-77d22177dfa0",
+      "uris": [
+        "/api/publish_exam"
+      ],
+      "scopes": [
+        {
+          "name": "do"
+        }
+      ]
+    },
+    {
+      "name": "confirm-exam",
+      "ownerManagedAccess": false,
+      "displayName": "confirm-exam",
+      "attributes": {},
+      "_id": "cd143c59-b24c-4f56-a1ac-cc68b1fba804",
+      "uris": [
+        "/api/confirm_exam"
+      ],
+      "scopes": [
+        {
+          "name": "do"
+        }
+      ]
+    }
+  ],
+  "policies": [
+    {
+      "id": "9d36d0cc-9b52-4b2e-a9b9-de982d1d19af",
+      "name": "Default Policy",
+      "description": "A policy that grants access only for users within this realm",
+      "type": "js",
+      "logic": "POSITIVE",
+      "decisionStrategy": "AFFIRMATIVE",
+      "config": {
+        "code": "// by default, grants any permission associated with this policy\n$evaluation.grant();\n"
+      }
+    },
+    {
+      "id": "41a8e5ad-e1fa-46e1-97f3-0d8e755c2729",
+      "name": "student",
+      "type": "role",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "roles": "[{\"id\":\"student\",\"required\":true}]"
+      }
+    },
+    {
+      "id": "4ad92c12-156f-4b00-993d-ace244b98563",
+      "name": "teacher",
+      "type": "role",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "roles": "[{\"id\":\"teacher\",\"required\":true}]"
+      }
+    },
+    {
+      "id": "7e6bb0cf-af03-44e8-b7f5-e74902aa3794",
+      "name": "Default Permission",
+      "description": "A permission that applies to the default resource type",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "defaultResourceType": "urn:flask-app:resources:default",
+        "applyPolicies": "[\"Default Policy\"]"
+      }
+    },
+    {
+      "id": "e58f8036-24a0-422a-a0da-8eefb27c09e2",
+      "name": "student_book_exam",
+      "description": "",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "resources": "[\"book-exam\"]",
+        "applyPolicies": "[\"student\"]"
+      }
+    },
+    {
+      "id": "05b78396-4fba-4c7c-8bb0-360608865f5c",
+      "name": "student_view_exam",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "resources": "[\"view-exam\"]",
+        "applyPolicies": "[\"student\"]"
+      }
+    },
+    {
+      "id": "e26db371-9f76-4867-9513-b5c54efbefbf",
+      "name": "student_view_grade",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "resources": "[\"view-grade\"]",
+        "applyPolicies": "[\"student\"]"
+      }
+    },
+    {
+      "id": "916aed66-65c0-45df-9c51-5d34e6ee0ec9",
+      "name": "teacher_publish_exam",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "resources": "[\"publish-exam\"]",
+        "applyPolicies": "[\"teacher\"]"
+      }
+    },
+    {
+      "id": "52ff4684-e096-4924-95bc-93e5a00c01ef",
+      "name": "teacher_confirm_exam",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "resources": "[\"confirm-exam\"]",
+        "applyPolicies": "[\"teacher\"]"
+      }
+    }
+  ],
+  "scopes": [
+    {
+      "id": "28da2103-aa2f-4210-8f3d-1b12e1f8f7ca",
+      "name": "do",
+      "displayName": "do"
+    }
+  ],
+  "decisionStrategy": "UNANIMOUS"
+}

@@ -54,6 +54,12 @@ def filter_validity_days(validity, max_validity):
     return validity
 
 
+def get_fields_for_authz_context(json_file):
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+    return data['web']['token_uri'], data['web']['client_id'], data['web']['client_secret']
+
+
 def get_oidc_info(oidc):
     info = oidc.user_getinfo(['preferred_username', 'realm_access', 'resource_access'])
     username = info.get('preferred_username')

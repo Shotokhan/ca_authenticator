@@ -2,3 +2,4 @@ Flask
 cryptography
 flask-oidc
 pymongo
+requests

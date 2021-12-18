@@ -8,6 +8,7 @@ import uuid
 import json
 from datetime import timedelta
 import hashlib
+import authz
 
 
 app = Flask(__name__, static_folder="/usr/src/app/static/", template_folder="/usr/src/app/static/html/")
@@ -23,23 +24,25 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config.update(config['app'])
 nonces = set()
 nonce_list_lim = config['misc']['nonce_list_lim']
-if config['misc']['disable_ssl_verification_for_oauth2']:
+verify_https_keycloak = config['misc']['disable_ssl_verification_for_oauth2']
+if verify_https_keycloak:
     project_utils.disable_ssl_verification_oauth2_client()
 
 credentials_store = {}
 oidc = OpenIDConnect(app, credentials_store)
+token_uri, client_id, client_secret = project_utils.get_fields_for_authz_context(app.config['OIDC_CLIENT_SECRETS'])
+authzContext = authz.AuthorizationContext(token_uri, "do", client_id, client_secret, verify_https_keycloak)
 
 
 def endpoint_stub(oidc, session, resource):
     if 'subject' in session:
-        global mongo_client
+        global authzContext
         global config
-        username, role, resources = project_utils.get_oidc_info(oidc)
-        subject_data = project_utils.from_b64(session['subject'])
-        subject_data = project_utils.subject_data_from_json(subject_data)
-        decision = resource in resources
-        decision &= username == subject_data['id']
-        decision &= role == subject_data['role']
+        refresh_token = oidc.get_refresh_token()
+        access_token, req_ok = authzContext.new_access_token(refresh_token)
+        if not req_ok:
+            return project_utils.json_response({"msg": "Can't get access token"}, 500)
+        decision = authzContext.check_permission(access_token, resource)
         if decision:
             return project_utils.json_response({"msg": "Allowed"}, 200)
         else:
@@ -117,7 +120,6 @@ def get_status():
 @project_utils.catch_error
 def registration():
     # {"csr": base64(csr), "validityDays": int}
-    global mongo_client
     global config
     req = request.get_json(force=True)
     csr = project_utils.from_b64(req['csr'])
@@ -235,7 +237,6 @@ def goodbye_page():
 @project_utils.catch_error
 def page_for_user():
     if 'subject' in session:
-        global mongo_client
         global config
         subject_data = project_utils.from_b64(session['subject'])
         subject_data = project_utils.subject_data_from_json(subject_data)
