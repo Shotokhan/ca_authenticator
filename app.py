@@ -9,6 +9,7 @@ import json
 from datetime import timedelta
 import hashlib
 import authz
+import os
 
 
 app = Flask(__name__, static_folder="/usr/src/app/static/", template_folder="/usr/src/app/static/html/")
@@ -22,6 +23,14 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config.update(config['app'])
+with open(config['app']['OIDC_CLIENT_SECRETS'], 'r') as f:
+    oidc_secrets = json.load(f)
+oidc_secrets['web']['client_secret'] = oidc_secrets['web'].get('client_secret') or os.getenv('client_secret')
+# app.config['OIDC_CLIENT_SECRETS'] = oidc_secrets # flask-oidc 1.4.0 doesn't support dict for oidc secrets
+oidc_secrets_file = "/tmp/oidc_client_secrets"
+with open(oidc_secrets_file, 'w') as f:
+    json.dump(oidc_secrets, f)
+app.config['OIDC_CLIENT_SECRETS'] = oidc_secrets_file
 nonces = set()
 nonce_list_lim = config['misc']['nonce_list_lim']
 verify_https_keycloak = config['misc']['disable_ssl_verification_for_oauth2']
@@ -30,7 +39,7 @@ if verify_https_keycloak:
 
 credentials_store = {}
 oidc = OpenIDConnect(app, credentials_store)
-token_uri, client_id, client_secret = project_utils.get_fields_for_authz_context(app.config['OIDC_CLIENT_SECRETS'])
+token_uri, client_id, client_secret = oidc_secrets['web']['token_uri'], oidc_secrets['web']['client_id'], oidc_secrets['web']['client_secret']
 authzContext = authz.AuthorizationContext(token_uri, "do", client_id, client_secret, verify_https_keycloak)
 
 

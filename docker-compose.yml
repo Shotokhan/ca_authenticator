@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 volumes:
   postgres_data:
@@ -12,9 +12,11 @@ services:
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_pass
       # need to set PGDATA to a sub-directory to fix "invisible file error" in mount point
       PGDATA: /var/lib/postgresql/data/pgdata/
+    secrets:
+      - postgres_pass
     networks:
       secure_network:
         ipv4_address: 10.5.0.3
@@ -27,14 +29,15 @@ services:
       DB_DATABASE: keycloak
       DB_USER: keycloak
       DB_SCHEMA: public
-      DB_PASSWORD: password
+      DB_PASSWORD_FILE: /run/secrets/postgres_pass
       KEYCLOAK_USER: admin
-      KEYCLOAK_PASSWORD: Pa55w0rd
+      KEYCLOAK_PASSWORD_FILE: /run/secrets/keycloak_pass
+    secrets:
+      - keycloak_pass
+      - postgres_pass
     ports:
       - 8080:8080
       - 8443:8443
-    depends_on:
-      - postgres
     networks:
       secure_network:
         ipv4_address: 10.5.0.4
@@ -49,15 +52,20 @@ services:
       - ./volume/:/usr/src/app/volume/
     ports:
       - "5001:5001"
-    environment:
-      CAPass: prova
-      serverPass: prova
-    depends_on:
-      - keycloak
+    secrets:
+      - ca_auth_env
     networks:
       secure_network:
         ipv4_address: 10.5.0.5
-      
+
+secrets:
+  keycloak_pass:
+    file: secrets/keycloak_pass.txt
+  postgres_pass:
+    file: secrets/postgres_pass.txt
+  ca_auth_env:
+    file: secrets/ca_auth.env
+
 networks:
   secure_network:
     driver: bridge

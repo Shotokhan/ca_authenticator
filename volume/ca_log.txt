@@ -6,3 +6,8 @@
  * Running on all addresses.
    WARNING: This is a development server. Do not use it in a production deployment.
  * Running on https://172.28.0.2:5002/ (Press CTRL+C to quit)
+172.28.0.1 - - [26/Nov/2021 15:53:47] "GET /static/html/index.html HTTP/1.1" 200 -
+172.28.0.1 - - [26/Nov/2021 15:53:47] "GET /static/script/certificates_library.js HTTP/1.1" 200 -
+172.28.0.1 - - [26/Nov/2021 15:53:47] "GET /static/script/rest_api.js HTTP/1.1" 200 -
+172.28.0.1 - - [26/Nov/2021 15:53:47] "GET /static/script/index.js HTTP/1.1" 200 -
+172.28.0.1 - - [26/Nov/2021 15:53:50] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -

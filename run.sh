@@ -1,5 +1,6 @@
 #!/bin/bash
-
+set -o allexport
+source /run/secrets/ca_auth_env
 if [[ -z "$serverPass" || -z "$CAPass" ]]
 then
 	read
